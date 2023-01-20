@@ -1,0 +1,165 @@
+:root {
+  --whiteSpace--xTight: 0.25rem;
+  --whiteSpace--tight: 0.5rem;
+  --whiteSpace--normal: 1rem;
+  --whiteSpace--loose: 2rem;
+  --whiteSpace--xLoose: 4rem;
+
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+.GridLayout {
+  display: grid;
+  grid-template-areas:
+    'SiteHeader'
+    'PrimaryNavigation'
+    'TableOfContents'
+    'PageContent'
+    'SiteFooter';
+  margin: 0 auto;
+
+  @include rowGap(loose, false);
+
+  @include for-breakpoint(tabletsOrLarger) {
+    grid-template-areas:
+      'SiteHeader SiteHeader SiteHeader'
+      'PrimaryNavigation PageContent TableOfContents'
+      'SiteFooter SiteFooter SiteFooter';
+    grid-template-columns: 0.75fr minmax(300px, 2fr) 0.75fr;
+  }
+
+  @include for-breakpoint(desktopsOrLarger) {
+    max-width: 960px;
+  }
+
+  @include for-breakpoint(bigDesktopsOrLarger) {
+    max-width: 80vw;
+  }
+}
+
+.SiteHeader {
+  grid-area: SiteHeader;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  @include paddingX(loose);
+  @include paddingY(normal);
+
+  $shadowBlur: 5px;
+  $shadowHeight: 20px;
+
+  &::before {
+    background-color: white;
+    border-bottom: 1px solid var(--color--border);
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: -1;
+  }
+
+  &::after {
+    background-color: black;
+    border-radius: 100%;
+    content: '';
+    filter: blur($shadowBlur);
+    height: 0;
+    left: $shadowBlur;
+    opacity: 0;
+    position: absolute;
+    right: $shadowBlur;
+    top: calc(100% - $shadowHeight / 2);
+    transition-duration: 0.25s;
+    transition-property: height, opacity;
+    z-index: -2;
+  }
+
+  &.is-stuck {
+    &::after {
+      height: $shadowHeight;
+      opacity: 0.3;
+    }
+  }
+}
+
+.SiteHeader-content {
+  align-items: flex-end;
+  @include justifyContent(space-between);
+
+  @include for-breakpoint(tabletsOrLarger) {
+    align-items: center;
+  }
+}
+
+.SiteHeader-logo {
+  align-items: baseline;
+  @include rowGap(xTight);
+  @include fontSize(large);
+
+  @include for-breakpoint(tabletsOrLarger) {
+    @include columnGap(normal);
+  }
+}
+
+.SiteHeader-logoText {
+  font-weight: bold;
+}
+
+.SiteHeader-logoSubtext {
+  color: var(--color--text--faded);
+  @include fontSize(small);
+}
+
+.SiteFooter {
+  border-top: 1px solid var(--color--border);
+  grid-area: SiteFooter;
+  @include fontSize(small);
+  @include justifyContent(center);
+  @include paddingY(tight);
+}
+
+.PrimaryNavigation-items,
+.TableOfContents-content {
+  max-height: calc(100vh - (var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px));
+  overflow-y: auto;
+  overflow-x: visible;
+  position: sticky;
+  top: calc(var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px);
+  @include paddingBottom(normal);
+}
+
+.PrimaryNavigation {
+  @include paddingLeft(normal);
+  @include paddingRight(loose);
+}
+
+.PrimaryNavigation-items {
+  @include paddingLeft(normal);
+}
+
+.TableOfContents {
+  @include paddingX(loose);
+}
+
+.PageContent {
+  grid-area: PageContent;
+
+  @include paddingX(loose);
+  @include rowGap(normal);
+
+  @include for-breakpoint(tabletsOrLarger) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.PrimaryNavigation {
+  grid-area: PrimaryNavigation;
+}
+
+.TableOfContents {
+  grid-area: TableOfContents;
+}
