@@ -1,3 +1,7 @@
 _pages
 _site
 .DS_Store
+.idea
+docs
+spec
+build
