@@ -15,7 +15,6 @@ fetch-docs: clean
 		cp -r build/$${v}/cometbft/docs/* _pages/$${dest} ; \
 		cp -r build/$${v}/cometbft/spec/* _pages/$${dest}/spec ; \
 	done < VERSIONS ; \
-	rm -Rf ./build ; \
 	find ./_pages -type f -iname 'README.md' | sed -e "p;s/readme/index/i" |  xargs -n2 mv
 .PHONY: fetch-docs
 
