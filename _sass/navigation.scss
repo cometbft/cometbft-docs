@@ -1,10 +1,13 @@
-.PrimaryNavigation-items {
+.TreeMenu-items {
   @include rowGap(normal);
+  @include paddingLeft(normal);
 }
 
-.PrimaryNavigation-item {
+.TreeMenu-item {
   position: relative;
+}
 
+.TreeMenu-item.has-children {
   &::before {
     content: '\f0da';
     font-family: 'Font Awesome 6 Pro';
@@ -17,13 +20,12 @@
     transition-duration: 0.25s;
   }
 
-  .PrimaryNavigation-subItems {
+  & > .TreeMenu-items {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
     transition-duration: 0.5s;
-    transition-property: max-height, opacity;
-    @include marginTop(tight);
+    transition-property: margin, max-height, opacity;
     @include rowGap(tight);
   }
 
@@ -33,37 +35,21 @@
       transform: rotate(90deg);
     }
 
-    .PrimaryNavigation-button {
-      font-weight: bold;
-    }
-
-    .PrimaryNavigation-subItems {
+    & > .TreeMenu-items {
       opacity: 1;
       max-height: 500px;
+      @include marginTop(tight);
     }
   }
 }
 
-.PrimaryNavigation-subItems {
-}
-
-.PrimaryNavigation-subButton {
-  border-left: 2px solid transparent;
-  display: block;
-  @include paddingLeft(normal);
-
-  &:hover {
-    border-left-color: var(--color--border);
-  }
-
-  &.is-active {
-    border-left-color: var(--color--primary);
-    color: var(--color--primary);
+.TreeMenu-item.is-active {
+  & > .TreeMenu-button {
     font-weight: bold;
   }
 }
 
-.TableOfContents {
+.TableOfContents-items {
   color: var(--color--text--faded);
   @include fontSize(small);
 }
