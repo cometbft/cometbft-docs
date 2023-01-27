@@ -1,5 +1,5 @@
 all: clean build-docs
-.PHONE: all
+.PHONE: build-docs
 
 ###############################################################################
 ###                           Documentation                                 ###
@@ -9,7 +9,7 @@ all: clean build-docs
 VERSIONS=main v0.34.x v0.37.x
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
-build-docs:
+build-docs: clean
 	# clone repository branches and copy docs and spec folders
 	@for v in $(VERSIONS); do \
 		echo "Clone and build docs for version $${v}"; \
