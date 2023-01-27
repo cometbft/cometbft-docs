@@ -1,35 +1,28 @@
-all: clean build-docs
-.PHONE: build-docs
-
 ###############################################################################
 ###                           Documentation                                 ###
 ###############################################################################
-# Target versions to build documentation for. Add a branch from `cometbft` to
-# the list to build a site for that version
-VERSIONS=main v0.34.x v0.37.x
 
-# This builds the documentation site for cometbft (docs.cometbft.com)
-build-docs: clean
-	# clone repository branches and copy docs and spec folders
-	@for v in $(VERSIONS); do \
+# Clone repository branches and copy docs and spec folders
+fetch-docs: clean
+	@echo "Fetching documentation from CometBFT repository"
+	@while read -r v dest; do \
 		echo "Clone and build docs for version $${v}"; \
 		mkdir -pv build/$${v} ; \
 		cd build/$${v} ; \
 		git clone -b $${v} https://github.com/cometbft/cometbft.git ; \
 		cd ../.. ; \
-		dest="$$(echo $${v} | sed 's/.x//;')" ; \
 		mkdir -p _pages/$${dest}/spec ; \
-		# copy only the docs and spec folders to _pages since they are the documentation content \
-        cp -r build/$${v}/cometbft/docs/* _pages/$${dest} ; \
+		cp -r build/$${v}/cometbft/docs/* _pages/$${dest} ; \
 		cp -r build/$${v}/cometbft/spec/* _pages/$${dest}/spec ; \
-	done ; \
+	done < VERSIONS ; \
 	rm -Rf ./build ; \
+	find ./_pages -type f -iname 'README.md' | sed -e "p;s/readme/index/i" |  xargs -n2 mv
+.PHONY: fetch-docs
 
-	# rename readme markdown to index
-	find ./_pages -type f -iname 'README.md' | sed -e "p;s/readme/index/i" |  xargs -n2 mv ;
-
-	# build the Jekyll site in a Docker container \
-    docker run --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
+# This builds the documentation site for cometbft (docs.cometbft.com)
+build-docs:
+	@echo "Building documentation"
+	@docker run --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
 		/bin/bash -c 'cd /srv/jekyll && bundle install && bundle exec jekyll build --future'
 .PHONY: build-docs
 
