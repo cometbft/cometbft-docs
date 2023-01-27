@@ -1,9 +1,0 @@
-I"w<p>This section describes the core types and functionality of the CometBFT protocol implementation.</p>
-
-<ul>
-  <li><a href="/main/spec/core/data_structures.md">Core Data Structures</a></li>
-  <li><a href="/main/spec/core/encoding.md">Encoding</a></li>
-  <li><a href="/main/spec/core/genesis.md">Genesis</a></li>
-  <li><a href="/main/spec/core/state.md">State</a></li>
-</ul>
-:ET

@@ -1,8 +1,0 @@
-I";<h1 id="blockchain">Blockchain</h1>
-
-<p>This section describes the core types and functionality of the CometBFT protocol implementation.</p>
-
-<p><a href="/main/spec/core/data_structures.md">Core Data Structures</a>
-<a href="/main/spec/core/encoding.md">Encoding</a>
-<a href="/main/spec/core/state.md">State</a></p>
-:ET

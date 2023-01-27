@@ -1,9 +1,0 @@
-I"z<h1 id="peer-to-peer-communication">Peer-to-Peer Communication</h1>
-
-<p>The operation of the p2p adopted in production CometBFT networks is <a href="./v0.34/">HERE</a>.</p>
-
-<blockquote>
-  <p>This is part of an ongoing <a href="https://github.com/cometbft/cometbft/issues/19">effort</a>
-to produce a high-level specification of the operation of the p2p layer.</p>
-</blockquote>
-:ET
