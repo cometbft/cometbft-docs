@@ -6,7 +6,7 @@
 fetch-docs: clean
 	@echo "Fetching documentation from CometBFT repository"
 	@while read -r v dest; do \
-		echo "Clone and build docs for version $${v}"; \
+		echo "Clone docs for version $${v}"; \
 		mkdir -pv build/$${v} ; \
 		cd build/$${v} ; \
 		git clone -b $${v} https://github.com/cometbft/cometbft.git ; \
@@ -14,8 +14,11 @@ fetch-docs: clean
 		mkdir -p _pages/$${dest}/spec ; \
 		cp -r build/$${v}/cometbft/docs/* _pages/$${dest} ; \
 		cp -r build/$${v}/cometbft/spec/* _pages/$${dest}/spec ; \
+		echo "Setting README.md from $${v} as the root landing page" ; \
+		cp _pages/$${dest}/README.md _pages/README.md ; \
+		echo "" ; \
 	done < VERSIONS ; \
-	find ./_pages -type f -iname 'README.md' | sed -e "p;s/readme/index/i" |  xargs -n2 mv
+	find _pages -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md'
 .PHONY: fetch-docs
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
@@ -36,5 +39,6 @@ sync-docs:
 .PHONY: sync-docs
 
 clean:
-	rm -Rf ./build _pages _site .jekyll-cache ;
+	@echo "Deleting all intermediate build artifacts"
+	@rm -Rf ./build _pages _site .jekyll-cache ;
 .PHONY: clean
