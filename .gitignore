@@ -7,3 +7,4 @@ spec
 build
 cometbft
 .jekyll-cache
+.jekyll-metadata
