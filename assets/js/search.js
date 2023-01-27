@@ -1,22 +1,5 @@
 window.addEventListener('DOMContentLoaded', initSiteSearch);
 
-function initSiteSearch() {
-  window.appState = {
-    refs: {
-      inputElement: document.querySelector('.js-search-input'),
-      searchResultsModal: document.querySelector('.js-search-results'),
-      timer: null,
-    },
-    pages: [],
-    results: [],
-  };
-
-  window.appState.refs.inputElement.addEventListener(
-    'focus',
-    handleFirstInputFocus
-  );
-}
-
 function handleFirstInputFocus(focusEvent) {
   const { inputElement } = window.appState.refs;
 
@@ -43,12 +26,28 @@ function handleKeyUp(keyUpEvent) {
   render();
 }
 
-function sanitizeSearchData(page) {
-  return {
-    ...page,
-    title: decodeURIComponent(page.title).replace(/\+/g, ' '),
-    content: decodeURIComponent(page.content).replace(/\+/g, ' '),
+function highlightSubString(string, substring) {
+  return string.replace(
+    new RegExp(substring, 'ig'),
+    (match) => `<span class="text--highlight">${match}</span>`
+  );
+}
+
+function initSiteSearch() {
+  window.appState = {
+    refs: {
+      inputElement: document.querySelector('.js-search-input'),
+      searchResultsModal: document.querySelector('.js-search-results'),
+      timer: null,
+    },
+    pages: [],
+    results: [],
   };
+
+  window.appState.refs.inputElement.addEventListener(
+    'focus',
+    handleFirstInputFocus
+  );
 }
 
 function loadSearchData() {
@@ -84,47 +83,81 @@ function render() {
   pagesForCurrentVersion.forEach((page) => {
     const lowerCaseTitle = page.title.toLowerCase();
 
-    let matchScore = 0;
-    let numOccurrencesInContent = 0;
+    const augmentedPage = {
+      ...page,
+      matchScore: 0,
+      numMatchesInContent: 0,
+      snippet: null,
+    };
 
     keywords.forEach((keyword) => {
       if (lowerCaseTitle.includes(keyword)) {
-        matchScore += 10;
+        augmentedPage.matchScore += 10;
+
+        augmentedPage.title = highlightSubString(page.title, keyword);
       }
 
-      if (page.content.includes(keyword)) {
-        matchScore += 1;
-        numOccurrencesInContent = (
-          page.content.match(new RegExp(keyword, 'g')) || []
-        ).length;
+      const matchesInPageContent = Array.from(
+        page.content.matchAll(new RegExp(keyword, 'ig'))
+      );
+
+      if (matchesInPageContent.length) {
+        augmentedPage.matchScore += matchesInPageContent.length;
+        augmentedPage.numMatchesInContent = matchesInPageContent.length;
+
+        if (!augmentedPage.snippet) {
+          const match = matchesInPageContent[0];
+
+          const snippet = page.content.slice(
+            Math.max(0, match.index - 25),
+            match.index + keyword.length + 25
+          );
+
+          augmentedPage.snippet = `...${highlightSubString(
+            snippet,
+            keyword
+          )}...`;
+        }
       }
     });
 
-    if (matchScore > 0) {
-      matchingPages.push({
-        ...page,
-        numOccurrencesInContent,
-        score: matchScore,
-      });
+    if (augmentedPage.matchScore > 0) {
+      matchingPages.push(augmentedPage);
     }
   });
 
-  matchingPages
-    .sort((a, b) => a.numOccurrencesInContent - b.numOccurrencesInContent)
-    .sort((a, b) => a.score - b.score)
-    .reverse();
+  matchingPages.sort((a, b) => a.matchScore - b.matchScore).reverse();
 
   const renderedResults = matchingPages
-    .map(
-      (result) => `
+    .map((result) => {
+      const { numMatchesInContent, snippet, title, url } = result;
+
+      const suffix =
+        numMatchesInContent >= 2
+          ? `<span class="text--link">+ ${numMatchesInContent - 1} ${
+              numMatchesInContent - 1 > 1 ? `matches` : `match`
+            }</span>`
+          : ``;
+
+      return `
         <li class="SiteSearch-result js-search-result">
-          <a class="SiteSearch-resultButton" href="${result.url}">
-            <span class="SiteSearch-resultTitle">${result.title}</span>
-            <span class="SiteSearch-resultDescription">${result.url}</span>
+          <a class="SiteSearch-resultButton" href="${url}">
+            <span class="SiteSearch-resultTitle">${title}</span>
+            <span class="SiteSearch-resultURL">${url}</span>
+            ${
+              snippet
+                ? `
+                  <span class="SiteSearch-resultSnippet">
+                    ${snippet}
+                    ${suffix}
+                  </span>
+                `
+                : 'No matches in page content'
+            }
           </a>
         </li>
-      `
-    )
+      `;
+    })
     .join('');
 
   searchResultsModal.innerHTML = matchingPages.length
@@ -141,4 +174,12 @@ function render() {
         No Results
       </li>
     `;
+}
+
+function sanitizeSearchData(page) {
+  return {
+    ...page,
+    title: decodeURIComponent(page.title).replace(/\+/g, ' '),
+    content: decodeURIComponent(page.content).replace(/\+/g, ' '),
+  };
 }

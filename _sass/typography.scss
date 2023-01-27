@@ -54,6 +54,12 @@
   @include fontSize(large);
 }
 
+.text--highlight {
+  background-color: var(--color--secondary--10);
+  border-radius: 2px;
+  display: inline-block;
+}
+
 .PageContent {
   a {
     @extend .text--link;
