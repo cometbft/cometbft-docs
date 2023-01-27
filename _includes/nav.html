@@ -1,0 +1,85 @@
+{%
+  assign matchingPages = site.pages
+    | where_exp: "page", "
+      page.id contains include.path
+    "
+    | sort: "order"
+    | sort: "parent.order"
+%}
+
+<ul class="TreeMenu-items">
+  {% for matchingPage in matchingPages %}
+    {%
+      assign pathWithoutReadme = matchingPage.id
+        | replace: '/readme', ''
+        | replace: '/README', ''
+    %}
+
+    {% if pathWithoutReadme == include.path %}
+      {% continue %}
+    {% endif %}
+
+    {%
+      assign numChildren = site.pages
+        | where_exp: "page", "
+          page.id contains pathWithoutReadme
+        "
+        | size
+    %}
+
+    {% assign depth = matchingPage.id | split: '/' | size %}
+
+    {%
+      assign depthWithoutReadme = pathWithoutReadme
+        | split: '/'
+        | size
+    %}
+
+    {%
+      assign targetDepth = include.path
+        | split: '/'
+        | size
+        | plus: 1
+    %}
+
+    {% if depth == targetDepth or depthWithoutReadme == targetDepth and numChildren == 1 %}
+      {% assign pathToMatch = pathWithoutReadme | append: '/' %}
+      <li
+        class="
+          TreeMenu-item
+          {% if page.url contains pathToMatch %}is-active{% endif %}
+        "
+      >
+        <a class="TreeMenu-button" href="{{ matchingPage.url }}">
+          {% if matchingPage.parent.title %}
+            {{ matchingPage.parent.title }}
+          {% else %}
+            {{ matchingPage.title }}
+          {% endif %}
+        </a>
+      </li>
+    {% elsif depthWithoutReadme == targetDepth %}
+      <li
+        class="
+          TreeMenu-item
+          js-tree-menu-parent-item
+          has-children
+          {% if page.url contains pathWithoutReadme %}is-active{% endif %}
+        "
+      >
+        <a
+          class="TreeMenu-button js-tree-menu-toggle-button"
+          href="{{ matchingPage.url }}"
+        >
+          {% if matchingPage.parent.title %}
+            {{ matchingPage.parent.title }}
+          {% else %}
+            {{ matchingPage.title }}
+          {% endif %}
+        </a>
+
+        {% include nav.html path=pathWithoutReadme %}
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>

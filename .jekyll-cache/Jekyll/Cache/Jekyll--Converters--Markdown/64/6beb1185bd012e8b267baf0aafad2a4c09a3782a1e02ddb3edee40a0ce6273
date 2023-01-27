@@ -1,0 +1,39 @@
+I"°<h1 id="creating-a-proposal">Creating a proposal</h1>
+
+<p>A block consists of a header, transactions, votes (the commit),
+and a list of evidence of malfeasance (ie. signing conflicting votes).</p>
+
+<p>We include no more than 1/10th of the maximum block size
+(<code class="language-plaintext highlighter-rouge">ConsensusParams.Block.MaxBytes</code>) of evidence with each block.</p>
+
+<h2 id="reaping-transactions-from-the-mempool">Reaping transactions from the mempool</h2>
+
+<p>When we reap transactions from the mempool, we calculate maximum data
+size by subtracting maximum header size (<code class="language-plaintext highlighter-rouge">MaxHeaderBytes</code>), the maximum
+amino overhead for a block (<code class="language-plaintext highlighter-rouge">MaxAminoOverheadForBlock</code>), the size of
+the last commit (if present) and evidence (if present). While reaping
+we account for amino overhead for each transaction.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">MaxDataBytes</span><span class="p">(</span><span class="n">maxBytes</span> <span class="kt">int64</span><span class="p">,</span> <span class="n">valsCount</span><span class="p">,</span> <span class="n">evidenceCount</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int64</span> <span class="p">{</span>
+ <span class="k">return</span> <span class="n">maxBytes</span> <span class="o">-</span>
+  <span class="n">MaxOverheadForBlock</span> <span class="o">-</span>
+  <span class="n">MaxHeaderBytes</span> <span class="o">-</span>
+  <span class="kt">int64</span><span class="p">(</span><span class="n">valsCount</span><span class="p">)</span><span class="o">*</span><span class="n">MaxVoteBytes</span> <span class="o">-</span>
+  <span class="kt">int64</span><span class="p">(</span><span class="n">evidenceCount</span><span class="p">)</span><span class="o">*</span><span class="n">MaxEvidenceBytes</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="validating-transactions-in-the-mempool">Validating transactions in the mempool</h2>
+
+<p>Before we accept a transaction in the mempool, we check if itâ€™s size is no more
+than {MaxDataSize}. {MaxDataSize} is calculated using the same formula as
+above, except we subtract the max number of evidence, {MaxNum} by the maximum size of evidence</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">MaxDataBytesUnknownEvidence</span><span class="p">(</span><span class="n">maxBytes</span> <span class="kt">int64</span><span class="p">,</span> <span class="n">valsCount</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int64</span> <span class="p">{</span>
+ <span class="k">return</span> <span class="n">maxBytes</span> <span class="o">-</span>
+  <span class="n">MaxOverheadForBlock</span> <span class="o">-</span>
+  <span class="n">MaxHeaderBytes</span> <span class="o">-</span>
+  <span class="p">(</span><span class="n">maxNumEvidence</span> <span class="o">*</span> <span class="n">MaxEvidenceBytes</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+:ET

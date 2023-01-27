@@ -1,0 +1,27 @@
+I"‹<h1 id="tendermint">Tendermint</h1>
+
+<p>Welcome to the Tendermint Core documentation!</p>
+
+<p>Tendermint Core is a blockchain application platform; it provides the equivalent
+of a web-server, database, and supporting libraries for blockchain applications
+written in any programming language. Like a web-server serving web applications,
+Tendermint serves blockchain applications.</p>
+
+<p>More formally, Tendermint Core performs Byzantine Fault Tolerant (BFT)
+State Machine Replication (SMR) for arbitrary deterministic, finite state machines.
+For more background, see <a href="introduction/what-is-tendermint.md">What is
+Tendermint?</a>.</p>
+
+<p>To get started quickly with an example application, see the <a href="/v0.34/introduction/quick-start/">quick start guide</a>.</p>
+
+<p>To learn about application development on Tendermint, see the <a href="https://github.com/tendermint/tendermint/tree/main/spec/abci">Application Blockchain Interface</a>.</p>
+
+<p>For more details on using Tendermint, see the respective documentation for
+<a href="tendermint-core/">Tendermint Core</a>, <a href="tools/">benchmarking and monitoring</a>, and <a href="networks/">network deployments</a>.</p>
+
+<p>To find out about the Tendermint ecosystem you can go <a href="https://github.com/tendermint/awesome#ecosystem">here</a>. If you are a project that is using Tendermint you are welcome to make a PR to add your project to the list.</p>
+
+<h2 id="contribute">Contribute</h2>
+
+<p>To contribute to the documentation, see <a href="https://github.com/tendermint/tendermint/blob/main/docs/DOCS_README.md">this file</a> for details of the build process and considerations when making changes.</p>
+:ET

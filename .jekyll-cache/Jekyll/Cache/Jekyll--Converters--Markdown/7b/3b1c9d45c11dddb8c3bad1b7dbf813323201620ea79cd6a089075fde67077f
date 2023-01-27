@@ -1,0 +1,197 @@
+I"�1<h1 id="light-client-specification">Light Client Specification</h1>
+
+<p>This directory contains work-in-progress English and TLA+ specifications for the Light Client
+protocol. Implementations of the light client can be found in
+<a href="https://github.com/informalsystems/tendermint-rs/tree/master/light-client">Rust</a> and
+<a href="https://github.com/cometbft/cometbft/tree/main/light">Go</a>.</p>
+
+<p>Light clients are assumed to be initialized once from a trusted source
+with a trusted header and validator set. The light client
+protocol allows a client to then securely update its trusted state by requesting and
+verifying a minimal set of data from a network of full nodes (at least one of which is correct).</p>
+
+<p>The light client is decomposed into two main components:</p>
+
+<ul>
+  <li><a href="#commit-verification">Commit Verification</a> - verify signed headers and associated validator
+set changes from a single full node, called primary</li>
+  <li><a href="#attack-detection">Attack Detection</a> -  verify commits across multiple full nodes (called secondaries) and detect conflicts (ie. the existence of a lightclient attack)</li>
+</ul>
+
+<p>In case a lightclient attack is detected, the lightclient submits evidence to a full node which is responsible for “accountability”, that is, punishing attackers:</p>
+
+<ul>
+  <li><a href="#accountability">Accountability</a> - given evidence for an attack, compute a set of validators that are responsible for it.</li>
+</ul>
+
+<h2 id="commit-verification">Commit Verification</h2>
+
+<p>The <a href="/v0.34/spec/light-client/verification/verification_001_published.md">English specification</a> describes the light client
+commit verification problem in terms of the temporal properties
+<a href="https://github.com/cometbft/cometbft/blob/main/spec/light-client/verification/verification_001_published.md#lcv-dist-safe1">LCV-DIST-SAFE.1</a> and
+<a href="https://github.com/cometbft/cometbft/blob/main/spec/light-client/verification/verification_001_published.md#lcv-dist-live1">LCV-DIST-LIVE.1</a>.
+Commit verification is assumed to operate within the Cosmos Failure Model, where +2/3 of validators are correct for some time period and
+validator sets can change arbitrarily at each height.</p>
+
+<p>A light client protocol is also provided, including all checks that
+need to be performed on headers, commits, and validator sets
+to satisfy the temporal properties - so a light client can continuously
+synchronize with a blockchain. Clients can skip possibly
+many intermediate headers by exploiting overlap in trusted and untrusted validator sets.
+When there is not enough overlap, a bisection routine can be used to find a
+minimal set of headers that do provide the required overlap.</p>
+
+<p>The <a href="/v0.34/spec/light-client/verification/Lightclient_A_1.tla">TLA+ specification ver. 001</a>
+is a formal description of the
+commit verification protocol executed by a client, including the safety and
+termination, which can be model checked with Apalache.</p>
+
+<p>A more detailed TLA+ specification of
+<a href="/v0.34/spec/light-client/verification/Lightclient_003_draft.tla">Light client verification ver. 003</a>
+is currently under peer review.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">MC*.tla</code> files contain concrete parameters for the
+<a href="/v0.34/spec/light-client/verification/Lightclient_A_1.tla">TLA+ specification</a>, in order to do model checking.
+For instance, <a href="/v0.34/spec/light-client/verification/MC4_3_faulty.tla">MC4_3_faulty.tla</a> contains the following parameters
+for the nodes, heights, the trusting period, the clock drifts,
+correctness of the primary node, and the ratio of the faulty processes:</p>
+
+<pre><code class="language-tla">AllNodes == {"n1", "n2", "n3", "n4"}
+TRUSTED_HEIGHT == 1
+TARGET_HEIGHT == 3
+TRUSTING_PERIOD == 1400     \* the trusting period in some time units
+CLOCK_DRIFT = 10            \* how much we assume the local clock is drifting
+REAL_CLOCK_DRIFT = 3        \* how much the local clock is actually drifting
+IS_PRIMARY_CORRECT == FALSE
+FAULTY_RATIO == &lt;&lt;1, 3&gt;&gt;    \* &lt; 1 / 3 faulty validators
+</code></pre>
+
+<p>To run a complete set of experiments, clone <a href="https://github.com/informalsystems/apalache">apalache</a> and <a href="https://github.com/informalsystems/apalache-tests">apalache-tests</a> into a directory <code class="language-plaintext highlighter-rouge">$DIR</code> and run the following commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$DIR</span>/apalache-tests/scripts/mk-run.py <span class="nt">--memlimit</span> 28 002bmc-apalache-ok.csv <span class="nv">$DIR</span>/apalache <span class="nb">.</span> out
+./out/run-all.sh
+</code></pre></div></div>
+
+<p>After the experiments have finished, you can collect the logs by executing the following command:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ./out
+<span class="nv">$DIR</span>/apalache-tests/scripts/parse-logs.py <span class="nt">--human</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>All lines in <code class="language-plaintext highlighter-rouge">results.csv</code> should report <code class="language-plaintext highlighter-rouge">Deadlock</code>, which means that the algorithm
+has terminated and no invariant violation was found.</p>
+
+<p>Similar to <a href="/v0.34/spec/light-client/verification/002bmc-apalache-ok.csv">002bmc-apalache-ok.csv</a>,
+file <a href="/v0.34/spec/light-client/verification/003bmc-apalache-error.csv">003bmc-apalache-error.csv</a> specifies
+the set of experiments that should result in counterexamples:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$DIR</span>/apalache-tests/scripts/mk-run.py <span class="nt">--memlimit</span> 28 003bmc-apalache-error.csv <span class="nv">$DIR</span>/apalache <span class="nb">.</span> out
+./out/run-all.sh
+</code></pre></div></div>
+
+<p>All lines in <code class="language-plaintext highlighter-rouge">results.csv</code> should report <code class="language-plaintext highlighter-rouge">Error</code>.</p>
+
+<p>The following table summarizes the experimental results for Light client verification
+version 001. The TLA+ properties can be found in the
+<a href="/v0.34/spec/light-client/verification/Lightclient_A_1.tla">TLA+ specification</a>.
+ The experiments were run in an AWS instance equipped with 32GB
+RAM and a 4-core Intel® Xeon® CPU E5-2686 v4 @ 2.30GHz CPU.
+We write “✗=k” when a bug is reported at depth k, and “✓&lt;=k” when
+no bug is reported up to depth k.</p>
+
+<p><img src="/v0.34/spec/light-client/experiments.png" alt="Experimental results" /></p>
+
+<p>The experimental results for version 003 are to be added.</p>
+
+<h2 id="attack-detection">Attack Detection</h2>
+
+<p>The <a href="/v0.34/spec/light-client/detection/detection_003_reviewed.md">English specification</a>
+defines light client attacks (and how they differ from blockchain
+forks), and describes the problem of a light client detecting
+these attacks by communicating with a network of full nodes,
+where at least one is correct.</p>
+
+<p>The specification also contains a detection protocol that checks
+whether the header obtained from the primary via the verification
+protocol matches corresponding headers provided by the secondaries.
+If this is not the case, the protocol analyses the verification traces
+of the involved full nodes
+and generates
+<a href="/v0.34/spec/light-client/detection/detection_003_reviewed.md#cmbc-lc-evidence-data1">evidence</a>
+of misbehavior that can be submitted to a full node so that
+the faulty validators can be punished.</p>
+
+<p>The <a href="/v0.34/spec/light-client/detection/LCDetector_003_draft.tla">TLA+ specification</a>
+is a formal description of the
+detection protocol for two peers, including the safety and
+termination, which can be model checked with Apalache.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">LCD_MC*.tla</code> files contain concrete parameters for the
+<a href="/v0.34/spec/light-client/detection/LCDetector_003_draft.tla">TLA+ specification</a>,
+in order to run the model checker.
+For instance, <a href="/v0.34/spec/light-client/verification/MC4_4_faulty.tla">LCD_MC4_4_faulty.tla</a>
+contains the following parameters
+for the nodes, heights, the trusting period, the clock drifts,
+correctness of the nodes, and the ratio of the faulty processes:</p>
+
+<pre><code class="language-tla">AllNodes == {"n1", "n2", "n3", "n4"}
+TRUSTED_HEIGHT == 1
+TARGET_HEIGHT == 3
+TRUSTING_PERIOD == 1400     \* the trusting period in some time units
+CLOCK_DRIFT = 10            \* how much we assume the local clock is drifting
+REAL_CLOCK_DRIFT = 3        \* how much the local clock is actually drifting
+IS_PRIMARY_CORRECT == FALSE
+IS_SECONDARY_CORRECT == FALSE
+FAULTY_RATIO == &lt;&lt;1, 3&gt;&gt;    \* &lt; 1 / 3 faulty validators
+</code></pre>
+
+<p>To run a complete set of experiments, clone <a href="https://github.com/informalsystems/apalache">apalache</a> and <a href="https://github.com/informalsystems/apalache-tests">apalache-tests</a> into a directory <code class="language-plaintext highlighter-rouge">$DIR</code> and run the following commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$DIR</span>/apalache-tests/scripts/mk-run.py <span class="nt">--memlimit</span> 28 004bmc-apalache-ok.csv <span class="nv">$DIR</span>/apalache <span class="nb">.</span> out
+./out/run-all.sh
+</code></pre></div></div>
+
+<p>After the experiments have finished, you can collect the logs by executing the following command:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ./out
+<span class="nv">$DIR</span>/apalache-tests/scripts/parse-logs.py <span class="nt">--human</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>All lines in <code class="language-plaintext highlighter-rouge">results.csv</code> should report <code class="language-plaintext highlighter-rouge">Deadlock</code>, which means that the algorithm
+has terminated and no invariant violation was found.</p>
+
+<p>Similar to <a href="/v0.34/spec/light-client/verification/004bmc-apalache-ok.csv">004bmc-apalache-ok.csv</a>,
+file <a href="/v0.34/spec/light-client/verification/005bmc-apalache-error.csv">005bmc-apalache-error.csv</a> specifies
+the set of experiments that should result in counterexamples:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$DIR</span>/apalache-tests/scripts/mk-run.py <span class="nt">--memlimit</span> 28 005bmc-apalache-error.csv <span class="nv">$DIR</span>/apalache <span class="nb">.</span> out
+./out/run-all.sh
+</code></pre></div></div>
+
+<p>All lines in <code class="language-plaintext highlighter-rouge">results.csv</code> should report <code class="language-plaintext highlighter-rouge">Error</code>.</p>
+
+<p>The detailed experimental results are to be added soon.</p>
+
+<h2 id="accountability">Accountability</h2>
+
+<p>The <a href="/v0.34/spec/light-client/attacks/isolate-attackers_002_reviewed.md">English specification</a>
+defines the protocol that is executed on a full node upon receiving attack <a href="/v0.34/spec/light-client/detection/detection_003_reviewed.md#cmbc-lc-evidence-data1">evidence</a> from a lightclient. In particular, the protocol handles three types of attacks</p>
+
+<ul>
+  <li>lunatic</li>
+  <li>equivocation</li>
+  <li>amnesia</li>
+</ul>
+
+<p>We discussed in the <a href="/v0.34/spec/light-client/attacks/isolate-attackers_002_reviewed.md#Part-III---Completeness">last part</a> of the English specification
+that the non-lunatic cases are defined by having the same validator set in the conflicting blocks. For these cases,
+computer-aided analysis of  <a href="/v0.34/spec/light-client/accountability/README/">Tendermint Consensus in TLA+</a> shows that equivocation and amnesia capture all non-lunatic attacks.</p>
+
+<p>The <a href="/v0.34/spec/light-client/attacks/Isolation_001_draft.tla">TLA+ specification</a>
+is a formal description of the
+protocol, including the safety property, which can be model checked with Apalache.</p>
+
+<p>Similar to the other specifications, <a href="/v0.34/spec/light-client/attacks/MC_5_3.tla">MC_5_3.tla</a> contains concrete parameters to run the model checker. The specification can be checked within seconds.</p>
+
+<p><a href="/v0.34/spec/light-client/accountability/README/">tendermint-accountability</a></p>
+:ET

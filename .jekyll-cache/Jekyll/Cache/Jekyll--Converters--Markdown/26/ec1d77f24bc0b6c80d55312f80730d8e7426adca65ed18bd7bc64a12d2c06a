@@ -1,0 +1,69 @@
+I"A<h1 id="subscribing-to-events-via-websocket">Subscribing to events via Websocket</h1>
+
+<p>Tendermint emits different events, which you can subscribe to via
+<a href="https://en.wikipedia.org/wiki/WebSocket">Websocket</a>. This can be useful
+for third-party applications (for analysis) or for inspecting state.</p>
+
+<p><a href="https://godoc.org/github.com/tendermint/tendermint/types#pkg-constants">List of events</a></p>
+
+<p>To connect to a node via websocket from the CLI, you can use a tool such as
+<a href="https://github.com/websockets/wscat">wscat</a> and run:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wscat ws://127.0.0.1:26657/websocket
+</code></pre></div></div>
+
+<p>You can subscribe to any of the events above by calling the <code class="language-plaintext highlighter-rouge">subscribe</code> RPC
+method via Websocket along with a valid query.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"subscribe"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tm.event='NewBlock'"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Check out <a href="https://docs.tendermint.com/main/rpc/">API docs</a> for
+more information on query syntax and other options.</p>
+
+<p>You can also use tags, given you had included them into DeliverTx
+response, to query transaction results. See <a href="../app-dev/indexing-transactions.md">Indexing
+transactions</a> for details.</p>
+
+<h2 id="validatorsetupdates">ValidatorSetUpdates</h2>
+
+<p>When validator set changes, ValidatorSetUpdates event is published. The
+event carries a list of pubkey/power pairs. The list is the same
+Tendermint receives from ABCI application (see <a href="https://github.com/tendermint/tendermint/blob/main/spec/abci/abci++_methods.md#endblock">EndBlock
+section</a> in
+the ABCI spec).</p>
+
+<p>Response:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tm.event='ValidatorSetUpdates'"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/event/ValidatorSetUpdates"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+              </span><span class="nl">"validator_updates"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                  </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"09EAD022FD25DE3A02E64B0FE9610B1417183EE4"</span><span class="p">,</span><span class="w">
+                  </span><span class="nl">"pub_key"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ww0z4WaZ0Xg+YI10w43wTWbBmM3dpVza4mmSQYsd0ck="</span><span class="w">
+                  </span><span class="p">},</span><span class="w">
+                  </span><span class="nl">"voting_power"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
+                  </span><span class="nl">"proposer_priority"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+                </span><span class="p">}</span><span class="w">
+              </span><span class="p">]</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+:ET

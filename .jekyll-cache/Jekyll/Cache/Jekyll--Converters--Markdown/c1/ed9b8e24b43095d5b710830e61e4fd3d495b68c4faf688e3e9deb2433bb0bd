@@ -1,0 +1,254 @@
+I"�A<h1 id="method">Method</h1>
+
+<p>This document provides a detailed description of the QA process.
+It is intended to be used by engineers reproducing the experimental setup for future tests of Tendermint.</p>
+
+<p>The (first iteration of the) QA process as described <a href="https://github.com/tendermint/tendermint/blob/v0.37.x/RELEASES.md#large-scale-testnets">in the RELEASES.md document</a>
+was applied to version v0.34.x in order to have a set of results acting as benchmarking baseline.
+This baseline is then compared with results obtained in later versions.</p>
+
+<p>Out of the testnet-based test cases described in <a href="https://github.com/tendermint/tendermint/blob/v0.37.x/RELEASES.md#large-scale-testnets">the releases document</a> we focused on two of them:
+<em>200 Node Test</em>, and <em>Rotating Nodes Test</em>.</p>
+
+<h2 id="software-dependencies">Software Dependencies</h2>
+
+<h3 id="infrastructure-requirements-to-run-the-tests">Infrastructure Requirements to Run the Tests</h3>
+
+<ul>
+  <li>An account at Digital Ocean (DO), with a high droplet limit (&gt;202)</li>
+  <li>The machine to orchestrate the tests should have the following installed:
+    <ul>
+      <li>A clone of the <a href="https://github.com/interchainio/tendermint-testnet">testnet repository</a>
+        <ul>
+          <li>This repository contains all the scripts mentioned in the reminder of this section</li>
+        </ul>
+      </li>
+      <li><a href="https://docs.digitalocean.com/reference/doctl/how-to/install/">Digital Ocean CLI</a></li>
+      <li><a href="https://www.terraform.io/docs">Terraform CLI</a></li>
+      <li><a href="https://docs.ansible.com/ansible/latest/index.html">Ansible CLI</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="requirements-for-result-extraction">Requirements for Result Extraction</h3>
+
+<ul>
+  <li>Matlab or Octave</li>
+  <li><a href="https://prometheus.io/">Prometheus</a> server installed</li>
+  <li>blockstore DB of one of the full nodes in the testnet</li>
+  <li>Prometheus DB</li>
+</ul>
+
+<h2 id="200-node-testnet">200 Node Testnet</h2>
+
+<h3 id="running-the-test">Running the test</h3>
+
+<p>This section explains how the tests were carried out for reproducibility purposes.</p>
+
+<ol>
+  <li>[If you haven’t done it before]
+Follow steps 1-4 of the <code class="language-plaintext highlighter-rouge">README.md</code> at the top of the testnet repository to configure Terraform, and <code class="language-plaintext highlighter-rouge">doctl</code>.</li>
+  <li>Copy file <code class="language-plaintext highlighter-rouge">testnets/testnet200.toml</code> onto <code class="language-plaintext highlighter-rouge">testnet.toml</code> (do NOT commit this change)</li>
+  <li>Set the variable <code class="language-plaintext highlighter-rouge">VERSION_TAG</code> in the <code class="language-plaintext highlighter-rouge">Makefile</code> to the git hash that is to be tested.</li>
+  <li>Follow steps 5-10 of the <code class="language-plaintext highlighter-rouge">README.md</code> to configure and start the 200 node testnet
+    <ul>
+      <li>WARNING: Do NOT forget to run <code class="language-plaintext highlighter-rouge">make terraform-destroy</code> as soon as you are done with the tests (see step 9)</li>
+    </ul>
+  </li>
+  <li>As a sanity check, connect to the Prometheus node’s web interface and check the graph for the <code class="language-plaintext highlighter-rouge">tendermint_consensus_height</code> metric.
+All nodes should be increasing their heights.</li>
+  <li><code class="language-plaintext highlighter-rouge">ssh</code> into the <code class="language-plaintext highlighter-rouge">testnet-load-runner</code>, then copy script <code class="language-plaintext highlighter-rouge">script/200-node-loadscript.sh</code> and run it from the load runner node.
+    <ul>
+      <li>Before running it, you need to edit the script to provide the IP address of a full node.
+This node will receive all transactions from the load runner node.</li>
+      <li>This script will take about 40 mins to run</li>
+      <li>It is running 90-seconds-long experiments in a loop with different loads</li>
+    </ul>
+  </li>
+  <li>Run <code class="language-plaintext highlighter-rouge">make retrieve-data</code> to gather all relevant data from the testnet into the orchestrating machine</li>
+  <li>Verify that the data was collected without errors
+    <ul>
+      <li>at least one blockstore DB for a Tendermint validator</li>
+      <li>the Prometheus database from the Prometheus node</li>
+      <li>for extra care, you can run <code class="language-plaintext highlighter-rouge">zip -T</code> on the <code class="language-plaintext highlighter-rouge">prometheus.zip</code> file and (one of) the <code class="language-plaintext highlighter-rouge">blockstore.db.zip</code> file(s)</li>
+    </ul>
+  </li>
+  <li><strong>Run <code class="language-plaintext highlighter-rouge">make terraform-destroy</code></strong>
+    <ul>
+      <li>Don’t forget to type <code class="language-plaintext highlighter-rouge">yes</code>! Otherwise you’re in trouble.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="result-extraction">Result Extraction</h3>
+
+<p>The method for extracting the results described here is highly manual (and exploratory) at this stage.
+The Core team should improve it at every iteration to increase the amount of automation.</p>
+
+<h4 id="steps">Steps</h4>
+
+<ol>
+  <li>Unzip the blockstore into a directory</li>
+  <li>Extract the latency report and the raw latencies for all the experiments. Run these commands from the directory containing the blockstore
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">go run github.com/tendermint/tendermint/test/loadtime/cmd/report@3ec6e424d --database-type goleveldb --data-dir ./ &gt; results/report.txt</code></li>
+      <li><code class="language-plaintext highlighter-rouge">go run github.com/tendermint/tendermint/test/loadtime/cmd/report@3ec6e424d --database-type goleveldb --data-dir ./ --csv results/raw.csv</code></li>
+    </ul>
+  </li>
+  <li>File <code class="language-plaintext highlighter-rouge">report.txt</code> contains an unordered list of experiments with varying concurrent connections and transaction rate
+    <ul>
+      <li>Create files <code class="language-plaintext highlighter-rouge">report01.txt</code>, <code class="language-plaintext highlighter-rouge">report02.txt</code>, <code class="language-plaintext highlighter-rouge">report04.txt</code> and, for each experiment in file <code class="language-plaintext highlighter-rouge">report.txt</code>,
+copy its related lines to the filename that matches the number of connections.</li>
+      <li>Sort the experiments in <code class="language-plaintext highlighter-rouge">report01.txt</code> in ascending tx rate order. Likewise for <code class="language-plaintext highlighter-rouge">report02.txt</code> and <code class="language-plaintext highlighter-rouge">report04.txt</code>.</li>
+    </ul>
+  </li>
+  <li>Generate file <code class="language-plaintext highlighter-rouge">report_tabbed.txt</code> by showing the contents <code class="language-plaintext highlighter-rouge">report01.txt</code>, <code class="language-plaintext highlighter-rouge">report02.txt</code>, <code class="language-plaintext highlighter-rouge">report04.txt</code> side by side
+    <ul>
+      <li>This effectively creates a table where rows are a particular tx rate and columns are a particular number of websocket connections.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Extract the raw latencies from file <code class="language-plaintext highlighter-rouge">raw.csv</code> using the following bash loop. This creates a <code class="language-plaintext highlighter-rouge">.csv</code> file and a <code class="language-plaintext highlighter-rouge">.dat</code> file per experiment.
+The format of the <code class="language-plaintext highlighter-rouge">.dat</code> files is amenable to loading them as matrices in Octave</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">uuids</span><span class="o">=(</span><span class="si">$(</span><span class="nb">cat </span>report01.txt report02.txt report04.txt | <span class="nb">grep</span> <span class="s1">'^Experiment ID: '</span> | <span class="nb">awk</span> <span class="s1">'{ print $3 }'</span><span class="si">)</span><span class="o">)</span>
+ <span class="nv">c</span><span class="o">=</span>1
+ <span class="k">for </span>i <span class="k">in </span>01 02 04<span class="p">;</span> <span class="k">do
+   for </span>j <span class="k">in </span>0025 0050 0100 0200<span class="p">;</span> <span class="k">do
+     </span><span class="nb">echo</span> <span class="nv">$i</span> <span class="nv">$j</span> <span class="nv">$c</span> <span class="s2">"</span><span class="k">${</span><span class="nv">uuids</span><span class="p">[</span><span class="nv">$c</span><span class="p">]</span><span class="k">}</span><span class="s2">"</span>
+     <span class="nv">filename</span><span class="o">=</span>c<span class="k">${</span><span class="nv">i</span><span class="k">}</span>_r<span class="k">${</span><span class="nv">j</span><span class="k">}</span>
+     <span class="nb">grep</span> <span class="k">${</span><span class="nv">uuids</span><span class="p">[</span><span class="nv">$c</span><span class="p">]</span><span class="k">}</span> raw.csv <span class="o">&gt;</span> <span class="k">${</span><span class="nv">filename</span><span class="k">}</span>.csv
+     <span class="nb">cat</span> <span class="k">${</span><span class="nv">filename</span><span class="k">}</span>.csv | <span class="nb">tr</span> , <span class="s1">' '</span> | <span class="nb">awk</span> <span class="s1">'{ print $2, $3 }'</span> <span class="o">&gt;</span> <span class="k">${</span><span class="nv">filename</span><span class="k">}</span>.dat
+     <span class="nv">c</span><span class="o">=</span><span class="si">$(</span><span class="nb">expr</span> <span class="nv">$c</span> + 1<span class="si">)</span>
+   <span class="k">done
+ done</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Enter Octave</li>
+  <li>
+    <p>Load all <code class="language-plaintext highlighter-rouge">.dat</code> files generated in step 5 into matrices using this Octave code snippet</p>
+
+    <pre><code class="language-octave"> conns =  { "01"; "02"; "04" };
+ rates =  { "0025"; "0050"; "0100"; "0200" };
+ for i = 1:length(conns)
+   for j = 1:length(rates)
+     filename = strcat("c", conns{i}, "_r", rates{j}, ".dat");
+     load("-ascii", filename);
+   endfor
+ endfor
+</code></pre>
+  </li>
+  <li>
+    <p>Set variable release to the current release undergoing QA</p>
+
+    <pre><code class="language-octave"> release = "v0.34.x";
+</code></pre>
+  </li>
+  <li>
+    <p>Generate a plot with all (or some) experiments, where the X axis is the experiment time,
+and the y axis is the latency of transactions.
+The following snippet plots all experiments.</p>
+
+    <pre><code class="language-octave"> legends = {};
+ hold off;
+ for i = 1:length(conns)
+   for j = 1:length(rates)
+     data_name = strcat("c", conns{i}, "_r", rates{j});
+     l = strcat("c=", conns{i}, " r=", rates{j});
+     m = eval(data_name); plot((m(:,1) - min(m(:,1))) / 1e+9, m(:,2) / 1e+9, ".");
+     hold on;
+     legends(1, end+1) = l;
+   endfor
+ endfor
+ legend(legends, "location", "northeastoutside");
+ xlabel("experiment time (s)");
+ ylabel("latency (s)");
+ t = sprintf("200-node testnet - %s", release);
+ title(t);
+</code></pre>
+  </li>
+  <li>
+    <p>Consider adjusting the axis, in case you want to compare your results to the baseline, for instance</p>
+
+    <pre><code class="language-octave">axis([0, 100, 0, 30], "tic");
+</code></pre>
+  </li>
+  <li>
+    <p>Use Octave’s GUI menu to save the plot (e.g. as <code class="language-plaintext highlighter-rouge">.png</code>)</p>
+  </li>
+  <li>
+    <p>Repeat steps 9 and 10 to obtain as many plots as deemed necessary.</p>
+  </li>
+  <li>To generate a latency vs throughput plot, using the raw CSV file generated
+in step 2, follow the instructions for the <a href="../../scripts/qa/reporting/README.md"><code class="language-plaintext highlighter-rouge">latency_throughput.py</code></a> script.</li>
+</ol>
+
+<h4 id="extracting-prometheus-metrics">Extracting Prometheus Metrics</h4>
+
+<ol>
+  <li>Stop the prometheus server if it is running as a service (e.g. a <code class="language-plaintext highlighter-rouge">systemd</code> unit).</li>
+  <li>Unzip the prometheus database retrieved from the testnet, and move it to replace the
+local prometheus database.</li>
+  <li>Start the prometheus server and make sure no error logs appear at start up.</li>
+  <li>Introduce the metrics you want to gather or plot.</li>
+</ol>
+
+<h2 id="rotating-node-testnet">Rotating Node Testnet</h2>
+
+<h3 id="running-the-test-1">Running the test</h3>
+
+<p>This section explains how the tests were carried out for reproducibility purposes.</p>
+
+<ol>
+  <li>[If you haven’t done it before]
+Follow steps 1-4 of the <code class="language-plaintext highlighter-rouge">README.md</code> at the top of the testnet repository to configure Terraform, and <code class="language-plaintext highlighter-rouge">doctl</code>.</li>
+  <li>Copy file <code class="language-plaintext highlighter-rouge">testnet_rotating.toml</code> onto <code class="language-plaintext highlighter-rouge">testnet.toml</code> (do NOT commit this change)</li>
+  <li>Set variable <code class="language-plaintext highlighter-rouge">VERSION_TAG</code> to the git hash that is to be tested.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">make terraform-apply EPHEMERAL_SIZE=25</code>
+    <ul>
+      <li>WARNING: Do NOT forget to run <code class="language-plaintext highlighter-rouge">make terraform-destroy</code> as soon as you are done with the tests</li>
+    </ul>
+  </li>
+  <li>Follow steps 6-10 of the <code class="language-plaintext highlighter-rouge">README.md</code> to configure and start the “stable” part of the rotating node testnet</li>
+  <li>As a sanity check, connect to the Prometheus node’s web interface and check the graph for the <code class="language-plaintext highlighter-rouge">tendermint_consensus_height</code> metric.
+All nodes should be increasing their heights.</li>
+  <li>On a different shell,
+    <ul>
+      <li>run <code class="language-plaintext highlighter-rouge">make runload ROTATE_CONNECTIONS=X ROTATE_TX_RATE=Y</code></li>
+      <li><code class="language-plaintext highlighter-rouge">X</code> and <code class="language-plaintext highlighter-rouge">Y</code> should reflect a load below the saturation point (see, e.g.,
+<a href="/v0.37/qa/v034/README/#finding-the-saturation-point">this paragraph</a> for further info)</li>
+    </ul>
+  </li>
+  <li>Run <code class="language-plaintext highlighter-rouge">make rotate</code> to start the script that creates the ephemeral nodes, and kills them when they are caught up.
+    <ul>
+      <li>WARNING: If you run this command from your laptop, the laptop needs to be up and connected for full length
+of the experiment.</li>
+    </ul>
+  </li>
+  <li>When the height of the chain reaches 3000, stop the <code class="language-plaintext highlighter-rouge">make rotate</code> script</li>
+  <li>When the rotate script has made two iterations (i.e., all ephemeral nodes have caught up twice)
+after height 3000 was reached, stop <code class="language-plaintext highlighter-rouge">make rotate</code></li>
+  <li>Run <code class="language-plaintext highlighter-rouge">make retrieve-data</code> to gather all relevant data from the testnet into the orchestrating machine</li>
+  <li>Verify that the data was collected without errors
+    <ul>
+      <li>at least one blockstore DB for a Tendermint validator</li>
+      <li>the Prometheus database from the Prometheus node</li>
+      <li>for extra care, you can run <code class="language-plaintext highlighter-rouge">zip -T</code> on the <code class="language-plaintext highlighter-rouge">prometheus.zip</code> file and (one of) the <code class="language-plaintext highlighter-rouge">blockstore.db.zip</code> file(s)</li>
+    </ul>
+  </li>
+  <li><strong>Run <code class="language-plaintext highlighter-rouge">make terraform-destroy</code></strong></li>
+</ol>
+
+<p>Steps 8 to 10 are highly manual at the moment and will be improved in next iterations.</p>
+
+<h3 id="result-extraction-1">Result Extraction</h3>
+
+<p>In order to obtain a latency plot, follow the instructions above for the 200 node experiment, but:</p>
+
+<ul>
+  <li>The <code class="language-plaintext highlighter-rouge">results.txt</code> file contains only one experiment</li>
+  <li>Therefore, no need for any <code class="language-plaintext highlighter-rouge">for</code> loops</li>
+</ul>
+
+<p>As for prometheus, the same method as for the 200 node experiment can be applied.</p>
+:ET

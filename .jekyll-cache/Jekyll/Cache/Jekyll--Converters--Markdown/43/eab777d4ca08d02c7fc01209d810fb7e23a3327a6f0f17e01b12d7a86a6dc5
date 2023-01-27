@@ -1,0 +1,175 @@
+I"�4<h1 id="indexing-transactions">Indexing Transactions</h1>
+
+<p>Tendermint allows you to index transactions and blocks and later query or
+subscribe to their results. Transactions are indexed by <code class="language-plaintext highlighter-rouge">TxResult.Events</code> and
+blocks are indexed by <code class="language-plaintext highlighter-rouge">Response(Begin|End)Block.Events</code>. However, transactions
+are also indexed by a primary key which includes the transaction hash and maps
+to and stores the corresponding <code class="language-plaintext highlighter-rouge">TxResult</code>. Blocks are indexed by a primary key
+which includes the block height and maps to and stores the block height, i.e.
+the block itself is never stored.</p>
+
+<p>Each event contains a type and a list of attributes, which are key-value pairs
+denoting something about what happened during the method’s execution. For more
+details on <code class="language-plaintext highlighter-rouge">Events</code>, see the
+<a href="https://github.com/tendermint/tendermint/blob/main/spec/abci/abci++_basic_concepts.md#events">ABCI</a>
+documentation.</p>
+
+<p>An <code class="language-plaintext highlighter-rouge">Event</code> has a composite key associated with it. A <code class="language-plaintext highlighter-rouge">compositeKey</code> is
+constructed by its type and key separated by a dot.</p>
+
+<p>For example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"jack"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+  </span><span class="s2">"account.number"</span><span class="err">:</span><span class="w"> </span><span class="mi">100</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<p>would be equal to the composite key of <code class="language-plaintext highlighter-rouge">jack.account.number</code>.</p>
+
+<p>By default, Tendermint will index all transactions by their respective hashes
+and height and blocks by their height.</p>
+
+<h2 id="configuration">Configuration</h2>
+
+<p>Operators can configure indexing via the <code class="language-plaintext highlighter-rouge">[tx_index]</code> section. The <code class="language-plaintext highlighter-rouge">indexer</code>
+field takes a series of supported indexers. If <code class="language-plaintext highlighter-rouge">null</code> is included, indexing will
+be turned off regardless of other values provided.</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[tx-index]</span>
+
+<span class="c"># The backend database to back the indexer.</span>
+<span class="c"># If indexer is "null", no indexer service will be used.</span>
+<span class="c">#</span>
+<span class="c"># The application will set which txs to index. In some cases a node operator will be able</span>
+<span class="c"># to decide which txs to index based on configuration set in the application.</span>
+<span class="c">#</span>
+<span class="c"># Options:</span>
+<span class="c">#   1) "null"</span>
+<span class="c">#   2) "kv" (default) - the simplest possible indexer, backed by key-value storage (defaults to levelDB; see DBBackend).</span>
+<span class="c">#     - When "kv" is chosen "tx.height" and "tx.hash" will always be indexed.</span>
+<span class="c">#   3) "psql" - the indexer services backed by PostgreSQL.</span>
+<span class="c"># indexer = "kv"</span>
+</code></pre></div></div>
+
+<h3 id="supported-indexers">Supported Indexers</h3>
+
+<h4 id="kv">KV</h4>
+
+<p>The <code class="language-plaintext highlighter-rouge">kv</code> indexer type is an embedded key-value store supported by the main
+underlying Tendermint database. Using the <code class="language-plaintext highlighter-rouge">kv</code> indexer type allows you to query
+for block and transaction events directly against Tendermint’s RPC. However, the
+query syntax is limited and so this indexer type might be deprecated or removed
+entirely in the future.</p>
+
+<h4 id="postgresql">PostgreSQL</h4>
+
+<p>The <code class="language-plaintext highlighter-rouge">psql</code> indexer type allows an operator to enable block and transaction event
+indexing by proxying it to an external PostgreSQL instance allowing for the events
+to be stored in relational models. Since the events are stored in a RDBMS, operators
+can leverage SQL to perform a series of rich and complex queries that are not
+supported by the <code class="language-plaintext highlighter-rouge">kv</code> indexer type. Since operators can leverage SQL directly,
+searching is not enabled for the <code class="language-plaintext highlighter-rouge">psql</code> indexer type via Tendermint’s RPC – any
+such query will fail.</p>
+
+<p>Note, the SQL schema is stored in <code class="language-plaintext highlighter-rouge">state/indexer/sink/psql/schema.sql</code> and operators
+must explicitly create the relations prior to starting Tendermint and enabling
+the <code class="language-plaintext highlighter-rouge">psql</code> indexer type.</p>
+
+<p>Example:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>psql ... <span class="nt">-f</span> state/indexer/sink/psql/schema.sql
+</code></pre></div></div>
+
+<h2 id="default-indexes">Default Indexes</h2>
+
+<p>The Tendermint tx and block event indexer indexes a few select reserved events
+by default.</p>
+
+<h3 id="transactions">Transactions</h3>
+
+<p>The following indexes are indexed by default:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">tx.height</code></li>
+  <li><code class="language-plaintext highlighter-rouge">tx.hash</code></li>
+</ul>
+
+<h3 id="blocks">Blocks</h3>
+
+<p>The following indexes are indexed by default:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">block.height</code></li>
+</ul>
+
+<h2 id="adding-events">Adding Events</h2>
+
+<p>Applications are free to define which events to index. Tendermint does not
+expose functionality to define which events to index and which to ignore. In
+your application’s <code class="language-plaintext highlighter-rouge">DeliverTx</code> method, add the <code class="language-plaintext highlighter-rouge">Events</code> field with pairs of
+UTF-8 encoded strings (e.g. “transfer.sender”: “Bob”, “transfer.recipient”:
+“Alice”, “transfer.balance”: “100”).</p>
+
+<p>Example:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">app</span> <span class="o">*</span><span class="n">KVStoreApplication</span><span class="p">)</span> <span class="n">DeliverTx</span><span class="p">(</span><span class="n">req</span> <span class="n">types</span><span class="o">.</span><span class="n">RequestDeliverTx</span><span class="p">)</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span> <span class="p">{</span>
+    <span class="c">//...</span>
+    <span class="n">events</span> <span class="o">:=</span> <span class="p">[]</span><span class="n">abci</span><span class="o">.</span><span class="n">Event</span><span class="p">{</span>
+        <span class="p">{</span>
+            <span class="n">Type</span><span class="o">:</span> <span class="s">"transfer"</span><span class="p">,</span>
+            <span class="n">Attributes</span><span class="o">:</span> <span class="p">[]</span><span class="n">abci</span><span class="o">.</span><span class="n">EventAttribute</span><span class="p">{</span>
+                <span class="p">{</span><span class="n">Key</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"sender"</span><span class="p">),</span> <span class="n">Value</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"Bob"</span><span class="p">),</span> <span class="n">Index</span><span class="o">:</span> <span class="no">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">Key</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"recipient"</span><span class="p">),</span> <span class="n">Value</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"Alice"</span><span class="p">),</span> <span class="n">Index</span><span class="o">:</span> <span class="no">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">Key</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"balance"</span><span class="p">),</span> <span class="n">Value</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"100"</span><span class="p">),</span> <span class="n">Index</span><span class="o">:</span> <span class="no">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">Key</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"note"</span><span class="p">),</span> <span class="n">Value</span><span class="o">:</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">(</span><span class="s">"nothing"</span><span class="p">),</span> <span class="n">Index</span><span class="o">:</span> <span class="no">true</span><span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">ResponseDeliverTx</span><span class="p">{</span><span class="n">Code</span><span class="o">:</span> <span class="n">code</span><span class="o">.</span><span class="n">CodeTypeOK</span><span class="p">,</span> <span class="n">Events</span><span class="o">:</span> <span class="n">events</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If the indexer is not <code class="language-plaintext highlighter-rouge">null</code>, the transaction will be indexed. Each event is
+indexed using a composite key in the form of <code class="language-plaintext highlighter-rouge">{eventType}.{eventAttribute}={eventValue}</code>,
+e.g. <code class="language-plaintext highlighter-rouge">transfer.sender=bob</code>.</p>
+
+<h2 id="querying-transactions-events">Querying Transactions Events</h2>
+
+<p>You can query for a paginated set of transaction by their events by calling the
+<code class="language-plaintext highlighter-rouge">/tx_search</code> RPC endpoint:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s2">"localhost:26657/tx_search?query=</span><span class="se">\"</span><span class="s2">message.sender='cosmos1...'</span><span class="se">\"</span><span class="s2">&amp;prove=true"</span>
+</code></pre></div></div>
+
+<p>Check out <a href="https://docs.tendermint.com/main/rpc/#/Info/tx_search">API docs</a>
+for more information on query syntax and other options.</p>
+
+<h2 id="subscribing-to-transactions">Subscribing to Transactions</h2>
+
+<p>Clients can subscribe to transactions with the given tags via WebSocket by providing
+a query to <code class="language-plaintext highlighter-rouge">/subscribe</code> RPC endpoint.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"subscribe"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"message.sender='cosmos1...'"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Check out <a href="https://docs.tendermint.com/main/rpc/#subscribe">API docs</a> for more information
+on query syntax and other options.</p>
+
+<h2 id="querying-blocks-events">Querying Blocks Events</h2>
+
+<p>You can query for a paginated set of blocks by their events by calling the
+<code class="language-plaintext highlighter-rouge">/block_search</code> RPC endpoint:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s2">"localhost:26657/block_search?query=</span><span class="se">\"</span><span class="s2">block.height &gt; 10 AND val_set.num_changed &gt; 0</span><span class="se">\"</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>Check out <a href="https://docs.tendermint.com/main/rpc/#/Info/block_search">API docs</a>
+for more information on query syntax and other options.</p>
+:ET

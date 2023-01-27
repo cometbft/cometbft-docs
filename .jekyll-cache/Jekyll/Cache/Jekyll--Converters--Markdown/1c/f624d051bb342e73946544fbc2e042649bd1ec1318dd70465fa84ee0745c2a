@@ -1,0 +1,18 @@
+I"’<h1 id="tendermint-quality-assurance">Tendermint Quality Assurance</h1>
+
+<p>This directory keeps track of the process followed by the Tendermint Core team
+for Quality Assurance before cutting a release.
+This directory is to live in multiple branches. On each release branch,
+the contents of this directory reflect the status of the process
+at the time the Quality Assurance process was applied for that release.</p>
+
+<p>File <a href="/v0.37/qa/method/">method</a> keeps track of the process followed to obtain the results
+used to decide if a release is passing the Quality Assurance process.
+The results obtained in each release are stored in their own directory.
+The following releases have undergone the Quality Assurance process:</p>
+
+<ul>
+  <li><a href="./v034/">v0.34.x</a>, which was tested just before releasing v0.34.22</li>
+  <li><a href="./v037/">v0.37.x</a>, with v.34.x acting as a baseline</li>
+</ul>
+:ET

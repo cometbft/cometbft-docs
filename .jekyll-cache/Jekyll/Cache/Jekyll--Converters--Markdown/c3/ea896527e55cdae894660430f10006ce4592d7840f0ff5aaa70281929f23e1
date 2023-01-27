@@ -1,0 +1,15 @@
+I"K<h1 id="messages">Messages</h1>
+
+<p>An implementation of the spec consists of many components. While many parts of these components are implementation specific, the p2p messages are not. In this section we will be covering all the p2p messages of components.</p>
+
+<p>There are two parts to the P2P messages, the message and the channel. The channel is message specific and messages are specific to components of CometBFT. When a node connect to a peer it will tell the other node which channels are available. This notifies the peer what services the connecting node offers. You can read more on channels in <a href="/main/spec/p2p/connection.md#mconnection">connection.md</a></p>
+
+<ul>
+  <li><a href="/main/spec/p2p/messages/block-sync/">Block Sync</a></li>
+  <li><a href="/main/spec/p2p/messages/mempool/">Mempool</a></li>
+  <li><a href="/main/spec/p2p/messages/evidence/">Evidence</a></li>
+  <li><a href="/main/spec/p2p/messages/state-sync/">State Sync</a></li>
+  <li><a href="/main/spec/p2p/messages/pex/">Pex</a></li>
+  <li><a href="/main/spec/p2p/messages/consensus/">Consensus</a></li>
+</ul>
+:ET

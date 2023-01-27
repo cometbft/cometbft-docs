@@ -1,0 +1,25 @@
+I"é<h1 id="consensus">Consensus</h1>
+
+<p>Specification of the consensus protocol implemented in CometBFT.</p>
+
+<h2 id="contents">Contents</h2>
+
+<ul>
+  <li><a href="./consensus-paper">Consensus Paper</a> - Latex paper on
+<a href="https://arxiv.org/abs/1807.04938">arxiv</a> describing the
+Tendermint consensus algorithm, adopted in CometBFT, with proofs of safety and termination.</li>
+  <li><a href="/main/spec/consensus/bft-time/">BFT Time</a> - How the timestamp in a CometBFT
+block header is computed in a Byzantine Fault Tolerant manner</li>
+  <li><a href="/main/spec/consensus/creating-proposal/">Creating Proposal</a> - How a proposer
+creates a block proposal for consensus</li>
+  <li><a href="./light-client">Light Client Protocol</a> - A protocol for light weight consensus
+verification and syncing to the latest state</li>
+  <li><a href="/main/spec/consensus/signing.md">Signing</a> - Rules for cryptographic signatures
+produced by validators.</li>
+  <li><a href="/main/spec/consensus/wal.md">Write Ahead Log</a> - Write ahead log used by the
+consensus state machine to recover from crashes.</li>
+</ul>
+
+<p>There is also a <a href="/main/spec/consensus/consensus/">stale markdown description</a> of the consensus state machine
+(TODO update this).</p>
+:ET

@@ -1,0 +1,35 @@
+I"�<h1 id="abci">ABCI++</h1>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>ABCI++ is a major evolution of ABCI (<strong>A</strong>pplication <strong>B</strong>lock<strong>c</strong>hain <strong>I</strong>nterface).
+Like its predecessor, ABCI++ is the interface between CometBFT (a state-machine
+replication engine) and the actual state machine being replicated (i.e., the Application).
+The API consists of a set of <em>methods</em>, each with a corresponding <code class="language-plaintext highlighter-rouge">Request</code> and <code class="language-plaintext highlighter-rouge">Response</code>
+message type.</p>
+
+<p>The methods are always initiated by CometBFT. The Application implements its logic
+for handling all ABCI++ methods.
+Thus, CometBFT always sends the <code class="language-plaintext highlighter-rouge">Request*</code> messages and receives the <code class="language-plaintext highlighter-rouge">Response*</code> messages
+in return.</p>
+
+<p>All ABCI++ messages and methods are defined in <a href="../../proto/tendermint/abci/types.proto">protocol buffers</a>.
+This allows CometBFT to run with applications written in many programming languages.</p>
+
+<p>This specification is split as follows:</p>
+
+<ul>
+  <li><a href="/main/spec/abci/abci++_basic_concepts/">Overview and basic concepts</a> - interface’s overview and concepts
+needed to understand other parts of this specification.</li>
+  <li><a href="/main/spec/abci/abci++_methods/">Methods</a> - complete details on all ABCI++ methods
+and message types.</li>
+  <li><a href="/main/spec/abci/abci++_app_requirements/">Requirements for the Application</a> - formal requirements
+on the Application’s logic to ensure CometBFT properties such as liveness. These requirements define what
+CometBFT expects from the Application; second part on managing ABCI application state and related topics.</li>
+  <li><a href="/main/spec/abci/abci++_tmint_expected_behavior/">CometBFT’s expected behavior</a> - specification of
+how the different ABCI++ methods may be called by CometBFT. This explains what the Application
+is to expect from CometBFT.</li>
+  <li><a href="/main/spec/abci/abci++_client_server/">Client and Server</a> - for those looking to implement their
+own ABCI application servers</li>
+</ul>
+:ET

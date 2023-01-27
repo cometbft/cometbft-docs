@@ -1,0 +1,72 @@
+I"¯<h1 id="mempool">Mempool</h1>
+
+<h2 id="channel">Channel</h2>
+
+<p>Mempool has one channel. The channel identifier is listed below.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Number</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MempoolChannel</td>
+      <td>48</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="message-types">Message Types</h2>
+
+<p>There is currently only one message that Mempool broadcasts and receives over
+the p2p gossip network (via the reactor): <code class="language-plaintext highlighter-rouge">TxsMessage</code></p>
+
+<h3 id="txs">Txs</h3>
+
+<p>A list of transactions. These transactions have been checked against the application for validity. This does not mean that the transactions are valid, it is up to the application to check this.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Field Number</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>txs</td>
+      <td>repeated bytes</td>
+      <td>List of transactions</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="message">Message</h3>
+
+<p>Message is a <a href="https://developers.google.com/protocol-buffers/docs/proto#oneof"><code class="language-plaintext highlighter-rouge">oneof</code> protobuf type</a>. The one of consists of one message <a href="#txs"><code class="language-plaintext highlighter-rouge">Txs</code></a>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Field Number</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>txs</td>
+      <td><a href="#txs">Txs</a></td>
+      <td>List of transactions</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+:ET

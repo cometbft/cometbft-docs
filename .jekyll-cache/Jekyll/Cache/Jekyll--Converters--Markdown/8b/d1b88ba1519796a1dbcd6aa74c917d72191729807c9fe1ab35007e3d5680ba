@@ -1,0 +1,567 @@
+I"p�<h1 id="using-tendermint">Using Tendermint</h1>
+
+<p>This is a guide to using the <code class="language-plaintext highlighter-rouge">tendermint</code> program from the command line.
+It assumes only that you have the <code class="language-plaintext highlighter-rouge">tendermint</code> binary installed and have
+some rudimentary idea of what Tendermint and ABCI are.</p>
+
+<p>You can see the help menu with <code class="language-plaintext highlighter-rouge">tendermint --help</code>, and the version
+number with <code class="language-plaintext highlighter-rouge">tendermint version</code>.</p>
+
+<h2 id="directory-root">Directory Root</h2>
+
+<p>The default directory for blockchain data is <code class="language-plaintext highlighter-rouge">~/.tendermint</code>. Override
+this by setting the <code class="language-plaintext highlighter-rouge">TMHOME</code> environment variable.</p>
+
+<h2 id="initialize">Initialize</h2>
+
+<p>Initialize the root directory by running:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint init
+</code></pre></div></div>
+
+<p>This will create a new private key (<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code>), and a
+genesis file (<code class="language-plaintext highlighter-rouge">genesis.json</code>) containing the associated public key, in
+<code class="language-plaintext highlighter-rouge">$TMHOME/config</code>. This is all that’s necessary to run a local testnet
+with one validator.</p>
+
+<p>For more elaborate initialization, see the testnet command:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint testnet <span class="nt">--help</span>
+</code></pre></div></div>
+
+<h3 id="genesis">Genesis</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">genesis.json</code> file in <code class="language-plaintext highlighter-rouge">$TMHOME/config/</code> defines the initial
+TendermintCore state upon genesis of the blockchain (<a href="https://github.com/tendermint/tendermint/blob/main/types/genesis.go">see
+definition</a>).</p>
+
+<h4 id="fields">Fields</h4>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">genesis_time</code>: Official time of blockchain start.</li>
+  <li><code class="language-plaintext highlighter-rouge">chain_id</code>: ID of the blockchain. <strong>This must be unique for
+every blockchain.</strong> If your testnet blockchains do not have unique
+chain IDs, you will have a bad time. The ChainID must be less than 50 symbols.</li>
+  <li><code class="language-plaintext highlighter-rouge">initial_height</code>: Height at which Tendermint should begin at. If a blockchain is conducting a network upgrade,
+  starting from the stopped height brings uniqueness to previous heights.</li>
+  <li><code class="language-plaintext highlighter-rouge">consensus_params</code> <a href="https://github.com/tendermint/tendermint/blob/main/spec/core/state.md#consensusparams">spec</a>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">block</code>
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">max_bytes</code>: Max block size, in bytes.</li>
+          <li><code class="language-plaintext highlighter-rouge">max_gas</code>: Max gas per block.</li>
+          <li><code class="language-plaintext highlighter-rouge">time_iota_ms</code>: Minimum time increment between consecutive blocks (in
+milliseconds). If the block header timestamp is ahead of the system clock,
+decrease this value.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">evidence</code>
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">max_age_num_blocks</code>: Max age of evidence, in blocks. The basic formula
+for calculating this is: MaxAgeDuration / {average block time}.</li>
+          <li><code class="language-plaintext highlighter-rouge">max_age_duration</code>: Max age of evidence, in time. It should correspond
+with an app’s “unbonding period” or other similar mechanism for handling
+<a href="https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed">Nothing-At-Stake
+attacks</a>.</li>
+          <li><code class="language-plaintext highlighter-rouge">max_num</code>: This sets the maximum number of evidence that can be committed
+in a single block. and should fall comfortably under the max block
+bytes when we consider the size of each evidence.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">validator</code>
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">pub_key_types</code>: Public key types validators can use.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">version</code>
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">app_version</code>: ABCI application version.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">validators</code>: List of initial validators. Note this may be overridden entirely by the
+application, and may be left empty to make explicit that the
+application will initialize the validator set with ResponseInitChain.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">pub_key</code>: The first element specifies the <code class="language-plaintext highlighter-rouge">pub_key</code> type. 1
+  == Ed25519. The second element are the pubkey bytes.</li>
+      <li><code class="language-plaintext highlighter-rouge">power</code>: The validator’s voting power.</li>
+      <li><code class="language-plaintext highlighter-rouge">name</code>: Name of the validator (optional).</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">app_hash</code>: The expected application hash (as returned by the
+<code class="language-plaintext highlighter-rouge">ResponseInfo</code> ABCI message) upon genesis. If the app’s hash does
+not match, Tendermint will panic.</li>
+  <li><code class="language-plaintext highlighter-rouge">app_state</code>: The application state (e.g. initial distribution
+of tokens).</li>
+</ul>
+
+<blockquote>
+  <p>:warning: <strong>ChainID must be unique to every blockchain. Reusing old chainID can cause issues</strong></p>
+</blockquote>
+
+<h4 id="sample-genesisjson">Sample genesis.json</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"genesis_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2020-04-21T11:17:42.341227868Z"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"chain_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test-chain-ROp9KF"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"initial_height"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"consensus_params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"block"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"max_bytes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"22020096"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"max_gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-1"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"time_iota_ms"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"evidence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"max_age_num_blocks"</span><span class="p">:</span><span class="w"> </span><span class="s2">"100000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"max_age_duration"</span><span class="p">:</span><span class="w"> </span><span class="s2">"172800000000000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"max_num"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"validator"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"pub_key_types"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"ed25519"</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"validators"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B547AB87E79F75A4A3198C57A8C2FDAF8628CB47"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"pub_key"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"P/V6GHuZrb8rs/k1oBorxc6vyXMlnzhJmv7LmjELDys="</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"power"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"app_hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="run">Run</h2>
+
+<p>To run a Tendermint node, use:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node
+</code></pre></div></div>
+
+<p>By default, Tendermint will try to connect to an ABCI application on
+<code class="language-plaintext highlighter-rouge">127.0.0.1:26658</code>. If you have the <code class="language-plaintext highlighter-rouge">kvstore</code> ABCI app installed, run it in
+another window. If you don’t, kill Tendermint and run an in-process version of
+the <code class="language-plaintext highlighter-rouge">kvstore</code> app:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node <span class="nt">--proxy_app</span><span class="o">=</span>kvstore
+</code></pre></div></div>
+
+<p>After a few seconds, you should see blocks start streaming in. Note that blocks
+are produced regularly, even if there are no transactions. See <em>No Empty
+Blocks</em>, below, to modify this setting.</p>
+
+<p>Tendermint supports in-process versions of the <code class="language-plaintext highlighter-rouge">counter</code>, <code class="language-plaintext highlighter-rouge">kvstore</code>, and <code class="language-plaintext highlighter-rouge">noop</code>
+apps that ship as examples with <code class="language-plaintext highlighter-rouge">abci-cli</code>. It’s easy to compile your app
+in-process with Tendermint if it’s written in Go. If your app is not written in
+Go, run it in another process, and use the <code class="language-plaintext highlighter-rouge">--proxy_app</code> flag to specify the
+address of the socket it is listening on, for instance:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node <span class="nt">--proxy_app</span><span class="o">=</span>/var/run/abci.sock
+</code></pre></div></div>
+
+<p>You can find out what flags are supported by running <code class="language-plaintext highlighter-rouge">tendermint node --help</code>.</p>
+
+<h2 id="transactions">Transactions</h2>
+
+<p>To send a transaction, use <code class="language-plaintext highlighter-rouge">curl</code> to make requests to the Tendermint RPC
+server, for example:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:26657/broadcast_tx_commit?tx<span class="o">=</span><span class="se">\"</span>abcd<span class="se">\"</span>
+</code></pre></div></div>
+
+<p>We can see the chain’s status at the <code class="language-plaintext highlighter-rouge">/status</code> end-point:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:26657/status | json_pp
+</code></pre></div></div>
+
+<p>and the <code class="language-plaintext highlighter-rouge">latest_app_hash</code> in particular:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:26657/status | json_pp | <span class="nb">grep </span>latest_app_hash
+</code></pre></div></div>
+
+<p>Visit <code class="language-plaintext highlighter-rouge">http://localhost:26657</code> in your browser to see the list of other
+endpoints. Some take no arguments (like <code class="language-plaintext highlighter-rouge">/status</code>), while others specify
+the argument name and use <code class="language-plaintext highlighter-rouge">_</code> as a placeholder.</p>
+
+<blockquote>
+  <p>TIP: Find the RPC Documentation <a href="https://docs.tendermint.com/main/rpc/">here</a></p>
+</blockquote>
+
+<h3 id="formatting">Formatting</h3>
+
+<p>The following nuances when sending/formatting transactions should be
+taken into account:</p>
+
+<p>With <code class="language-plaintext highlighter-rouge">GET</code>:</p>
+
+<p>To send a UTF8 string byte array, quote the value of the tx parameter:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s1">'http://localhost:26657/broadcast_tx_commit?tx="hello"'</span>
+</code></pre></div></div>
+
+<p>which sends a 5 byte transaction: “h e l l o” [68 65 6c 6c 6f].</p>
+
+<p>Note the URL must be wrapped with single quotes, else bash will ignore
+the double quotes. To avoid the single quotes, escape the double quotes:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:26657/broadcast_tx_commit?tx<span class="o">=</span><span class="se">\"</span>hello<span class="se">\"</span>
+</code></pre></div></div>
+
+<p>Using a special character:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s1">'http://localhost:26657/broadcast_tx_commit?tx="€5"'</span>
+</code></pre></div></div>
+
+<p>sends a 4 byte transaction: “€5” (UTF8) [e2 82 ac 35].</p>
+
+<p>To send as raw hex, omit quotes AND prefix the hex string with <code class="language-plaintext highlighter-rouge">0x</code>:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:26657/broadcast_tx_commit?tx<span class="o">=</span>0x01020304
+</code></pre></div></div>
+
+<p>which sends a 4 byte transaction: [01 02 03 04].</p>
+
+<p>With <code class="language-plaintext highlighter-rouge">POST</code> (using <code class="language-plaintext highlighter-rouge">json</code>), the raw hex must be <code class="language-plaintext highlighter-rouge">base64</code> encoded:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">--data-binary</span> <span class="s1">'{"jsonrpc":"2.0","id":"anything","method":"broadcast_tx_commit","params": {"tx": "AQIDBA=="}}'</span> <span class="nt">-H</span> <span class="s1">'content-type:text/plain;'</span> http://localhost:26657
+</code></pre></div></div>
+
+<p>which sends the same 4 byte transaction: [01 02 03 04].</p>
+
+<p>Note that raw hex cannot be used in <code class="language-plaintext highlighter-rouge">POST</code> transactions.</p>
+
+<h2 id="reset">Reset</h2>
+
+<blockquote>
+  <p>:warning: <strong>UNSAFE</strong> Only do this in development and only if you can
+afford to lose all blockchain data!</p>
+</blockquote>
+
+<p>To reset a blockchain, stop the node and run:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint unsafe_reset_all
+</code></pre></div></div>
+
+<p>This command will remove the data directory and reset private validator and
+address book files.</p>
+
+<h2 id="configuration">Configuration</h2>
+
+<p>Tendermint uses a <code class="language-plaintext highlighter-rouge">config.toml</code> for configuration. For details, see <a href="./configuration.md">the
+config specification</a>.</p>
+
+<p>Notable options include the socket address of the application
+(<code class="language-plaintext highlighter-rouge">proxy_app</code>), the listening address of the Tendermint peer
+(<code class="language-plaintext highlighter-rouge">p2p.laddr</code>), and the listening address of the RPC server
+(<code class="language-plaintext highlighter-rouge">rpc.laddr</code>).</p>
+
+<p>Some fields from the config file can be overwritten with flags.</p>
+
+<h2 id="no-empty-blocks">No Empty Blocks</h2>
+
+<p>While the default behavior of <code class="language-plaintext highlighter-rouge">tendermint</code> is still to create blocks
+approximately once per second, it is possible to disable empty blocks or
+set a block creation interval. In the former case, blocks will be
+created when there are new transactions or when the AppHash changes.</p>
+
+<p>To configure Tendermint to not produce empty blocks unless there are
+transactions or the app hash changes, run Tendermint with this
+additional flag:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node <span class="nt">--consensus</span>.create_empty_blocks<span class="o">=</span><span class="nb">false</span>
+</code></pre></div></div>
+
+<p>or set the configuration via the <code class="language-plaintext highlighter-rouge">config.toml</code> file:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[consensus]</span>
+<span class="py">create_empty_blocks</span> <span class="p">=</span> <span class="kc">false</span>
+</code></pre></div></div>
+
+<p>Remember: because the default is to <em>create empty blocks</em>, avoiding
+empty blocks requires the config option to be set to <code class="language-plaintext highlighter-rouge">false</code>.</p>
+
+<p>The block interval setting allows for a delay (in time.Duration format <a href="https://golang.org/pkg/time/#ParseDuration">ParseDuration</a>) between the
+creation of each new empty block. It can be set with this additional flag:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">--consensus</span>.create_empty_blocks_interval<span class="o">=</span><span class="s2">"5s"</span>
+</code></pre></div></div>
+
+<p>or set the configuration via the <code class="language-plaintext highlighter-rouge">config.toml</code> file:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[consensus]</span>
+<span class="py">create_empty_blocks_interval</span> <span class="p">=</span> <span class="s">"5s"</span>
+</code></pre></div></div>
+
+<p>With this setting, empty blocks will be produced every 5s if no block
+has been produced otherwise, regardless of the value of
+<code class="language-plaintext highlighter-rouge">create_empty_blocks</code>.</p>
+
+<h2 id="broadcast-api">Broadcast API</h2>
+
+<p>Earlier, we used the <code class="language-plaintext highlighter-rouge">broadcast_tx_commit</code> endpoint to send a
+transaction. When a transaction is sent to a Tendermint node, it will
+run via <code class="language-plaintext highlighter-rouge">CheckTx</code> against the application. If it passes <code class="language-plaintext highlighter-rouge">CheckTx</code>, it
+will be included in the mempool, broadcasted to other peers, and
+eventually included in a block.</p>
+
+<p>Since there are multiple phases to processing a transaction, we offer
+multiple endpoints to broadcast a transaction:</p>
+
+<div class="language-md highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/broadcast_tx_async
+/broadcast_tx_sync
+/broadcast_tx_commit
+</code></pre></div></div>
+
+<p>These correspond to no-processing, processing through the mempool, and
+processing through a block, respectively. That is, <code class="language-plaintext highlighter-rouge">broadcast_tx_async</code>,
+will return right away without waiting to hear if the transaction is
+even valid, while <code class="language-plaintext highlighter-rouge">broadcast_tx_sync</code> will return with the result of
+running the transaction through <code class="language-plaintext highlighter-rouge">CheckTx</code>. Using <code class="language-plaintext highlighter-rouge">broadcast_tx_commit</code>
+will wait until the transaction is committed in a block or until some
+timeout is reached, but will return right away if the transaction does
+not pass <code class="language-plaintext highlighter-rouge">CheckTx</code>. The return value for <code class="language-plaintext highlighter-rouge">broadcast_tx_commit</code> includes
+two fields, <code class="language-plaintext highlighter-rouge">check_tx</code> and <code class="language-plaintext highlighter-rouge">deliver_tx</code>, pertaining to the result of
+running the transaction through those ABCI messages.</p>
+
+<p>The benefit of using <code class="language-plaintext highlighter-rouge">broadcast_tx_commit</code> is that the request returns
+after the transaction is committed (i.e. included in a block), but that
+can take on the order of a second. For a quick result, use
+<code class="language-plaintext highlighter-rouge">broadcast_tx_sync</code>, but the transaction will not be committed until
+later, and by that point its effect on the state may change.</p>
+
+<p>Note the mempool does not provide strong guarantees - just because a tx passed
+CheckTx (ie. was accepted into the mempool), doesn’t mean it will be committed,
+as nodes with the tx in their mempool may crash before they get to propose.
+For more information, see the <a href="../tendermint-core/running-in-production.md#mempool-wal">mempool
+write-ahead-log</a></p>
+
+<h2 id="tendermint-networks">Tendermint Networks</h2>
+
+<p>When <code class="language-plaintext highlighter-rouge">tendermint init</code> is run, both a <code class="language-plaintext highlighter-rouge">genesis.json</code> and
+<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> are created in <code class="language-plaintext highlighter-rouge">~/.tendermint/config</code>. The
+<code class="language-plaintext highlighter-rouge">genesis.json</code> might look like:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"validators"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"pub_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"h3hk+QE8c6QLTySp8TcfzclJw/BG79ziGB/pIA+DfPE="</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"power"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"app_hash"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"chain_id"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"test-chain-rDlYSN"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"genesis_time"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0001-01-01T00:00:00Z"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>And the <code class="language-plaintext highlighter-rouge">priv_validator_key.json</code>:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"last_step"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"last_round"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"address"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"B788DEDE4F50AD8BC9462DE76741CCAFF87D51E2"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"pub_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"h3hk+QE8c6QLTySp8TcfzclJw/BG79ziGB/pIA+DfPE="</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"last_height"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"priv_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"JPivl82x+LfVkp8i3ztoTjY6c6GJ4pBxQexErOCyhwqHeGT5ATxzpAtPJKnxNx/NyUnD8Ebv3OIYH+kgD4N88Q=="</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PrivKeyEd25519"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> actually contains a private key, and should
+thus be kept absolutely secret; for now we work with the plain text.
+Note the <code class="language-plaintext highlighter-rouge">last_</code> fields, which are used to prevent us from signing
+conflicting messages.</p>
+
+<p>Note also that the <code class="language-plaintext highlighter-rouge">pub_key</code> (the public key) in the
+<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> is also present in the <code class="language-plaintext highlighter-rouge">genesis.json</code>.</p>
+
+<p>The genesis file contains the list of public keys which may participate
+in the consensus, and their corresponding voting power. Greater than 2/3
+of the voting power must be active (i.e. the corresponding private keys
+must be producing signatures) for the consensus to make progress. In our
+case, the genesis file contains the public key of our
+<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code>, so a Tendermint node started with the default
+root directory will be able to make progress. Voting power uses an int64
+but must be positive, thus the range is: 0 through 9223372036854775807.
+Because of how the current proposer selection algorithm works, we do not
+recommend having voting powers greater than 10\^12 (ie. 1 trillion).</p>
+
+<p>If we want to add more nodes to the network, we have two choices: we can
+add a new validator node, who will also participate in the consensus by
+proposing blocks and voting on them, or we can add a new non-validator
+node, who will not participate directly, but will verify and keep up
+with the consensus protocol.</p>
+
+<h3 id="peers">Peers</h3>
+
+<h4 id="seed">Seed</h4>
+
+<p>A seed node is a node who relays the addresses of other peers which they know
+of. These nodes constantly crawl the network to try to get more peers. The
+addresses which the seed node relays get saved into a local address book. Once
+these are in the address book, you will connect to those addresses directly.
+Basically the seed nodes job is just to relay everyones addresses. You won’t
+connect to seed nodes once you have received enough addresses, so typically you
+only need them on the first start. The seed node will immediately disconnect
+from you after sending you some addresses.</p>
+
+<h4 id="persistent-peer">Persistent Peer</h4>
+
+<p>Persistent peers are people you want to be constantly connected with. If you
+disconnect you will try to connect directly back to them as opposed to using
+another address from the address book. On restarts you will always try to
+connect to these peers regardless of the size of your address book.</p>
+
+<p>All peers relay peers they know of by default. This is called the peer exchange
+protocol (PeX). With PeX, peers will be gossiping about known peers and forming
+a network, storing peer addresses in the addrbook. Because of this, you don’t
+have to use a seed node if you have a live persistent peer.</p>
+
+<h4 id="connecting-to-peers">Connecting to Peers</h4>
+
+<p>To connect to peers on start-up, specify them in the
+<code class="language-plaintext highlighter-rouge">$TMHOME/config/config.toml</code> or on the command line. Use <code class="language-plaintext highlighter-rouge">seeds</code> to
+specify seed nodes, and
+<code class="language-plaintext highlighter-rouge">persistent_peers</code> to specify peers that your node will maintain
+persistent connections with.</p>
+
+<p>For example,</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node <span class="nt">--p2p</span>.seeds <span class="s2">"f9baeaa15fedf5e1ef7448dd60f46c01f1a9e9c4@1.2.3.4:26656,0491d373a8e0fcf1023aaf18c51d6a1d0d4f31bd@5.6.7.8:26656"</span>
+</code></pre></div></div>
+
+<p>Alternatively, you can use the <code class="language-plaintext highlighter-rouge">/dial_seeds</code> endpoint of the RPC to
+specify seeds for a running node to connect to:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s1">'localhost:26657/dial_seeds?seeds=\["f9baeaa15fedf5e1ef7448dd60f46c01f1a9e9c4@1.2.3.4:26656","0491d373a8e0fcf1023aaf18c51d6a1d0d4f31bd@5.6.7.8:26656"\]'</span>
+</code></pre></div></div>
+
+<p>Note, with PeX enabled, you
+should not need seeds after the first start.</p>
+
+<p>If you want Tendermint to connect to specific set of addresses and
+maintain a persistent connection with each, you can use the
+<code class="language-plaintext highlighter-rouge">--p2p.persistent_peers</code> flag or the corresponding setting in the
+<code class="language-plaintext highlighter-rouge">config.toml</code> or the <code class="language-plaintext highlighter-rouge">/dial_peers</code> RPC endpoint to do it without
+stopping Tendermint core instance.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint node <span class="nt">--p2p</span>.persistent_peers <span class="s2">"429fcf25974313b95673f58d77eacdd434402665@10.11.12.13:26656,96663a3dd0d7b9d17d4c8211b191af259621c693@10.11.12.14:26656"</span>
+
+curl <span class="s1">'localhost:26657/dial_peers?persistent=true&amp;peers=\["429fcf25974313b95673f58d77eacdd434402665@10.11.12.13:26656","96663a3dd0d7b9d17d4c8211b191af259621c693@10.11.12.14:26656"\]'</span>
+</code></pre></div></div>
+
+<h3 id="adding-a-non-validator">Adding a Non-Validator</h3>
+
+<p>Adding a non-validator is simple. Just copy the original <code class="language-plaintext highlighter-rouge">genesis.json</code>
+to <code class="language-plaintext highlighter-rouge">~/.tendermint/config</code> on the new machine and start the node,
+specifying seeds or persistent peers as necessary. If no seeds or
+persistent peers are specified, the node won’t make any blocks, because
+it’s not a validator, and it won’t hear about any blocks, because it’s
+not connected to the other peer.</p>
+
+<h3 id="adding-a-validator">Adding a Validator</h3>
+
+<p>The easiest way to add new validators is to do it in the <code class="language-plaintext highlighter-rouge">genesis.json</code>,
+before starting the network. For instance, we could make a new
+<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code>, and copy it’s <code class="language-plaintext highlighter-rouge">pub_key</code> into the above genesis.</p>
+
+<p>We can generate a new <code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> with the command:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint gen_validator
+</code></pre></div></div>
+
+<p>Now we can update our genesis file. For instance, if the new
+<code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> looks like:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"address"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"5AF49D2A2D4F5AD4C7C8C4CC2FB020131E9C4902"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"pub_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"l9X9+fjkeBzDfPGbUM7AMIRE6uJN78zN5+lk5OYotek="</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"priv_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"EDJY9W6zlAw+su6ITgTKg2nTZcHAH1NMTW5iwlgmNDuX1f35+OR4HMN88ZtQzsAwhETq4k3vzM3n6WTk5ii16Q=="</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PrivKeyEd25519"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"last_step"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"last_round"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"last_height"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>then the new <code class="language-plaintext highlighter-rouge">genesis.json</code> will be:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"validators"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"pub_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"h3hk+QE8c6QLTySp8TcfzclJw/BG79ziGB/pIA+DfPE="</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"power"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"pub_key"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"value"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"l9X9+fjkeBzDfPGbUM7AMIRE6uJN78zN5+lk5OYotek="</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"tendermint/PubKeyEd25519"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"power"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"app_hash"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"chain_id"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"test-chain-rDlYSN"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"genesis_time"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"0001-01-01T00:00:00Z"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Update the <code class="language-plaintext highlighter-rouge">genesis.json</code> in <code class="language-plaintext highlighter-rouge">~/.tendermint/config</code>. Copy the genesis
+file and the new <code class="language-plaintext highlighter-rouge">priv_validator_key.json</code> to the <code class="language-plaintext highlighter-rouge">~/.tendermint/config</code> on
+a new machine.</p>
+
+<p>Now run <code class="language-plaintext highlighter-rouge">tendermint node</code> on both machines, and use either
+<code class="language-plaintext highlighter-rouge">--p2p.persistent_peers</code> or the <code class="language-plaintext highlighter-rouge">/dial_peers</code> to get them to peer up.
+They should start making blocks, and will only continue to do so as long
+as both of them are online.</p>
+
+<p>To make a Tendermint network that can tolerate one of the validators
+failing, you need at least four validator nodes (e.g., 2/3).</p>
+
+<p>Updating validators in a live network is supported but must be
+explicitly programmed by the application developer. See the <a href="../app-dev/abci-cli.md">application
+developers guide</a> for more details.</p>
+
+<h3 id="local-network">Local Network</h3>
+
+<p>To run a network locally, say on a single machine, you must change the <code class="language-plaintext highlighter-rouge">_laddr</code>
+fields in the <code class="language-plaintext highlighter-rouge">config.toml</code> (or using the flags) so that the listening
+addresses of the various sockets don’t conflict. Additionally, you must set
+<code class="language-plaintext highlighter-rouge">addr_book_strict=false</code> in the <code class="language-plaintext highlighter-rouge">config.toml</code>, otherwise Tendermint’s p2p
+library will deny making connections to peers with the same IP address.</p>
+
+<h3 id="upgrading">Upgrading</h3>
+
+<p>See the
+<a href="https://github.com/tendermint/tendermint/blob/v0.34.x/UPGRADING.md">UPGRADING.md</a>
+guide. You may need to reset your chain between major breaking releases.
+Although, we expect Tendermint to have fewer breaking releases in the future
+(especially after 1.0 release).</p>
+:ET

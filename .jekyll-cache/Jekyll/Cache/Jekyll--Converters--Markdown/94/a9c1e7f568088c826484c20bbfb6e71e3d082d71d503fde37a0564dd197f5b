@@ -1,0 +1,46 @@
+I"<h1 id="evidence">Evidence</h1>
+
+<h2 id="channel">Channel</h2>
+
+<p>Evidence has one channel. The channel identifier is listed below.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Number</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EvidenceChannel</td>
+      <td>56</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="message-types">Message Types</h2>
+
+<h3 id="evidencelist">EvidenceList</h3>
+
+<p>EvidenceList consists of a list of verified evidence. This evidence will already have been propagated throughout the network. EvidenceList is used in two places, as a p2p message and within the block <a href="/v0.34/spec/core/data_structures.md#block">block</a> as well.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Field Number</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>evidence</td>
+      <td>repeated <a href="/v0.34/spec/core/data_structures.md#evidence">Evidence</a></td>
+      <td>List of valid evidence</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+:ET

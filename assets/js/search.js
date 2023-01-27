@@ -1,10 +1,10 @@
-window.addEventListener("DOMContentLoaded", initSiteSearch);
+window.addEventListener('DOMContentLoaded', initSiteSearch);
 
 function initSiteSearch() {
   window.appState = {
     refs: {
-      inputElement: document.querySelector(".js-search-input"),
-      searchResultsModal: document.querySelector(".js-search-results"),
+      inputElement: document.querySelector('.js-search-input'),
+      searchResultsModal: document.querySelector('.js-search-results'),
       timer: null,
     },
     pages: [],
@@ -12,7 +12,7 @@ function initSiteSearch() {
   };
 
   window.appState.refs.inputElement.addEventListener(
-    "focus",
+    'focus',
     handleFirstInputFocus
   );
 }
@@ -20,7 +20,7 @@ function initSiteSearch() {
 function handleFirstInputFocus(focusEvent) {
   const { inputElement } = window.appState.refs;
 
-  inputElement.addEventListener("keyup", (keyUpEvent) => {
+  inputElement.addEventListener('keyup', (keyUpEvent) => {
     clearTimeout(window.appState.refs.timer);
 
     window.appState.refs.timer = setTimeout(() => {
@@ -28,9 +28,9 @@ function handleFirstInputFocus(focusEvent) {
     }, 300);
   });
 
-  inputElement.removeEventListener("focus", handleFirstInputFocus);
+  inputElement.removeEventListener('focus', handleFirstInputFocus);
 
-  inputElement.addEventListener("focus", handleInputFocus);
+  inputElement.addEventListener('focus', handleInputFocus);
 
   handleInputFocus(focusEvent);
 
@@ -46,13 +46,13 @@ function handleKeyUp(keyUpEvent) {
 function sanitizeSearchData(page) {
   return {
     ...page,
-    title: decodeURIComponent(page.title).replace(/\+/g, " "),
-    content: decodeURIComponent(page.content).replace(/\+/g, " "),
+    title: decodeURIComponent(page.title).replace(/\+/g, ' '),
+    content: decodeURIComponent(page.content).replace(/\+/g, ' '),
   };
 }
 
 function loadSearchData() {
-  fetch("/assets/js/search.data.json")
+  fetch('/assets/js/search.data.json')
     .then((response) => response.json())
     .then((pages) => {
       window.appState.pages = pages.map(sanitizeSearchData);
@@ -62,9 +62,7 @@ function loadSearchData() {
 function render() {
   const { inputElement, searchResultsModal } = window.appState.refs;
 
-  const keywords = inputElement.value.toLowerCase().split(" ");
-
-  const matchingPages = [];
+  const keywords = inputElement.value.toLowerCase().split(' ');
 
   searchResultsModal.innerHTML = ``;
 
@@ -72,7 +70,18 @@ function render() {
     return;
   }
 
-  window.appState.pages.forEach((page) => {
+  const versionMenuElement = document.querySelector('.js-version-menu');
+
+  const currentVersion =
+    versionMenuElement.options[versionMenuElement.selectedIndex].value;
+
+  const matchingPages = [];
+
+  const pagesForCurrentVersion = window.appState.pages.filter(
+    (page) => page.version === currentVersion
+  );
+
+  pagesForCurrentVersion.forEach((page) => {
     const lowerCaseTitle = page.title.toLowerCase();
 
     let matchScore = 0;
@@ -86,7 +95,7 @@ function render() {
       if (page.content.includes(keyword)) {
         matchScore += 1;
         numOccurrencesInContent = (
-          page.content.match(new RegExp(keyword, "g")) || []
+          page.content.match(new RegExp(keyword, 'g')) || []
         ).length;
       }
     });
@@ -116,7 +125,7 @@ function render() {
         </li>
       `
     )
-    .join("");
+    .join('');
 
   searchResultsModal.innerHTML = matchingPages.length
     ? `

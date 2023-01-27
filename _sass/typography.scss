@@ -140,6 +140,10 @@
     top: 0;
   }
 
+  li > ul {
+    @include marginTop(tight);
+  }
+
   code {
     background-color: var(--color--primary--10);
     display: inline-block;

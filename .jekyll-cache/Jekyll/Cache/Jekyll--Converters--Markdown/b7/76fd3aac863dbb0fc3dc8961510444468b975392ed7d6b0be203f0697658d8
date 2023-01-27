@@ -1,0 +1,105 @@
+I"~<h1 id="install-tendermint">Install Tendermint</h1>
+
+<h2 id="from-binary">From Binary</h2>
+
+<p>To download pre-built binaries, see the <a href="https://github.com/tendermint/tendermint/releases">releases page</a>.</p>
+
+<h2 id="from-source">From Source</h2>
+
+<p>You’ll need <code class="language-plaintext highlighter-rouge">go</code> <a href="https://golang.org/doc/install">installed</a> and the required
+environment variables set, which can be done with the following commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="se">\"\$</span>HOME/go<span class="se">\"</span> <span class="o">&gt;&gt;</span> ~/.bash_profile
+<span class="nb">echo export </span><span class="nv">PATH</span><span class="o">=</span><span class="se">\"\$</span>PATH:<span class="se">\$</span>GOPATH/bin<span class="se">\"</span> <span class="o">&gt;&gt;</span> ~/.bash_profile
+</code></pre></div></div>
+
+<h3 id="get-source-code">Get Source Code</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/tendermint/tendermint.git
+<span class="nb">cd </span>tendermint
+</code></pre></div></div>
+
+<h3 id="compile">Compile</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>to put the binary in <code class="language-plaintext highlighter-rouge">$GOPATH/bin</code> or use:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
+</code></pre></div></div>
+
+<p>to put the binary in <code class="language-plaintext highlighter-rouge">./build</code>.</p>
+
+<p><em>DISCLAIMER</em> The binary of Tendermint is build/installed without the DWARF
+symbol table. If you would like to build/install Tendermint with the DWARF
+symbol and debug information, remove <code class="language-plaintext highlighter-rouge">-s -w</code> from <code class="language-plaintext highlighter-rouge">BUILD_FLAGS</code> in the make
+file.</p>
+
+<p>The latest Tendermint is now installed. You can verify the installation by
+running:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint version
+</code></pre></div></div>
+
+<h2 id="run">Run</h2>
+
+<p>To start a one-node blockchain with a simple in-process application:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tendermint init
+tendermint node <span class="nt">--proxy_app</span><span class="o">=</span>kvstore
+</code></pre></div></div>
+
+<h2 id="reinstall">Reinstall</h2>
+
+<p>If you already have Tendermint installed, and you make updates, simply</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nb">install</span>
+</code></pre></div></div>
+
+<p>To upgrade, run</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git pull origin master
+make <span class="nb">install</span>
+</code></pre></div></div>
+
+<h2 id="compile-with-cleveldb-support">Compile with CLevelDB support</h2>
+
+<p>Install <a href="https://github.com/google/leveldb">LevelDB</a> (minimum version is 1.7).</p>
+
+<p>Install LevelDB with snappy (optionally). Below are commands for Ubuntu:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt <span class="nb">install </span>build-essential
+
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>libsnappy-dev
+
+wget https://github.com/google/leveldb/archive/v1.20.tar.gz <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">tar</span> <span class="nt">-zxvf</span> v1.20.tar.gz <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">cd </span>leveldb-1.20/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  make <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">sudo cp</span> <span class="nt">-r</span> out-static/lib<span class="k">*</span> out-shared/lib<span class="k">*</span> /usr/local/lib/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">cd </span>include/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">sudo cp</span> <span class="nt">-r</span> leveldb /usr/local/include/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">sudo </span>ldconfig <span class="o">&amp;&amp;</span> <span class="se">\</span>
+  <span class="nb">rm</span> <span class="nt">-f</span> v1.20.tar.gz
+</code></pre></div></div>
+
+<p>Set a database backend to <code class="language-plaintext highlighter-rouge">cleveldb</code>:</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># config/config.toml</span>
+<span class="py">db_backend</span> <span class="p">=</span> <span class="s">"cleveldb"</span>
+</code></pre></div></div>
+
+<p>To install Tendermint, run:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">CGO_LDFLAGS</span><span class="o">=</span><span class="s2">"-lsnappy"</span> make <span class="nb">install </span><span class="nv">COMETBFT_BUILD_OPTIONS</span><span class="o">=</span>cleveldb
+</code></pre></div></div>
+
+<p>or run:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">CGO_LDFLAGS</span><span class="o">=</span><span class="s2">"-lsnappy"</span> make build <span class="nv">COMETBFT_BUILD_OPTIONS</span><span class="o">=</span>cleveldb
+</code></pre></div></div>
+
+<p>which puts the binary in <code class="language-plaintext highlighter-rouge">./build</code>.</p>
+:ET

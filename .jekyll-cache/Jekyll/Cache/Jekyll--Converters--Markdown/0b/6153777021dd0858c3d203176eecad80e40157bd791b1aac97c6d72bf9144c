@@ -1,0 +1,263 @@
+I"�;<h1 id="using-abci-cli">Using ABCI-CLI</h1>
+
+<p>To facilitate testing and debugging of ABCI servers and simple apps, we
+built a CLI, the <code class="language-plaintext highlighter-rouge">abci-cli</code>, for sending ABCI messages from the command
+line.</p>
+
+<h2 id="install">Install</h2>
+
+<p>Make sure you <a href="https://golang.org/doc/install">have Go installed</a>.</p>
+
+<p>Next, install the <code class="language-plaintext highlighter-rouge">abci-cli</code> tool and example applications:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/tendermint/tendermint.git
+<span class="nb">cd </span>tendermint
+make install_abci
+</code></pre></div></div>
+
+<p>Now run <code class="language-plaintext highlighter-rouge">abci-cli</code> to see the list of commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Usage:
+  abci-cli <span class="o">[</span><span class="nb">command</span><span class="o">]</span>
+
+Available Commands:
+  batch            run a batch of abci commands against an application
+  check_tx         validate a transaction
+  commit           commit the application state and <span class="k">return </span>the Merkle root <span class="nb">hash
+  </span>completion       Generate the autocompletion script <span class="k">for </span>the specified shell
+  console          start an interactive ABCI console <span class="k">for </span>multiple commands
+  deliver_tx       deliver a new transaction to the application
+  <span class="nb">echo             </span>have the application <span class="nb">echo </span>a message
+  <span class="nb">help             </span>Help about any <span class="nb">command
+  </span>info             get some info about the application
+  kvstore          ABCI demo example
+  prepare_proposal prepare proposal
+  process_proposal process proposal
+  query            query the application state
+  <span class="nb">test             </span>run integration tests
+  version          print ABCI console version
+
+Flags:
+      <span class="nt">--abci</span> string        either socket or grpc <span class="o">(</span>default <span class="s2">"socket"</span><span class="o">)</span>
+      <span class="nt">--address</span> string     address of application socket <span class="o">(</span>default <span class="s2">"tcp://0.0.0.0:26658"</span><span class="o">)</span>
+  <span class="nt">-h</span>, <span class="nt">--help</span>               <span class="nb">help </span><span class="k">for </span>abci-cli
+      <span class="nt">--log_level</span> string   <span class="nb">set </span>the logger level <span class="o">(</span>default <span class="s2">"debug"</span><span class="o">)</span>
+  <span class="nt">-v</span>, <span class="nt">--verbose</span>            print the <span class="nb">command </span>and results as <span class="k">if </span>it were a console session
+
+Use <span class="s2">"abci-cli [command] --help"</span> <span class="k">for </span>more information about a command.
+</code></pre></div></div>
+
+<h2 id="kvstore---first-example">KVStore - First Example</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">abci-cli</code> tool lets us send ABCI messages to our application, to
+help build and debug them.</p>
+
+<p>The most important messages are <code class="language-plaintext highlighter-rouge">deliver_tx</code>, <code class="language-plaintext highlighter-rouge">check_tx</code>, and <code class="language-plaintext highlighter-rouge">commit</code>,
+but there are others for convenience, configuration, and information
+purposes.</p>
+
+<p>We’ll start a kvstore application, which was installed at the same time
+as <code class="language-plaintext highlighter-rouge">abci-cli</code> above. The kvstore just stores transactions in a merkle
+tree. Its code can be found
+<a href="https://github.com/tendermint/tendermint/blob/main/abci/cmd/abci-cli/abci-cli.go">here</a>
+and looks like the following:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">cmdKVStore</span><span class="p">(</span><span class="n">cmd</span> <span class="o">*</span><span class="n">cobra</span><span class="o">.</span><span class="n">Command</span><span class="p">,</span> <span class="n">args</span> <span class="p">[]</span><span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="n">logger</span> <span class="o">:=</span> <span class="n">log</span><span class="o">.</span><span class="n">NewTMLogger</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">NewSyncWriter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">Stdout</span><span class="p">))</span>
+
+	<span class="c">// Create the application - in memory or persisted to disk</span>
+	<span class="k">var</span> <span class="n">app</span> <span class="n">types</span><span class="o">.</span><span class="n">Application</span>
+	<span class="k">if</span> <span class="n">flagPersist</span> <span class="o">==</span> <span class="s">""</span> <span class="p">{</span>
+		<span class="k">var</span> <span class="n">err</span> <span class="kt">error</span>
+		<span class="n">flagPersist</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">MkdirTemp</span><span class="p">(</span><span class="s">""</span><span class="p">,</span> <span class="s">"persistent_kvstore_tmp"</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="n">err</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="n">app</span> <span class="o">=</span> <span class="n">kvstore</span><span class="o">.</span><span class="n">NewPersistentKVStoreApplication</span><span class="p">(</span><span class="n">flagPersist</span><span class="p">)</span>
+	<span class="n">app</span><span class="o">.</span><span class="p">(</span><span class="o">*</span><span class="n">kvstore</span><span class="o">.</span><span class="n">PersistentKVStoreApplication</span><span class="p">)</span><span class="o">.</span><span class="n">SetLogger</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">With</span><span class="p">(</span><span class="s">"module"</span><span class="p">,</span> <span class="s">"kvstore"</span><span class="p">))</span>
+
+	<span class="c">// Start the listener</span>
+	<span class="n">srv</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">server</span><span class="o">.</span><span class="n">NewServer</span><span class="p">(</span><span class="n">flagAddress</span><span class="p">,</span> <span class="n">flagAbci</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="n">err</span>
+	<span class="p">}</span>
+	<span class="n">srv</span><span class="o">.</span><span class="n">SetLogger</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">With</span><span class="p">(</span><span class="s">"module"</span><span class="p">,</span> <span class="s">"abci-server"</span><span class="p">))</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">srv</span><span class="o">.</span><span class="n">Start</span><span class="p">();</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="n">err</span>
+	<span class="p">}</span>
+
+	<span class="c">// Stop upon receiving SIGTERM or CTRL-C.</span>
+	<span class="n">tmos</span><span class="o">.</span><span class="n">TrapSignal</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="c">// Cleanup</span>
+		<span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">srv</span><span class="o">.</span><span class="n">Stop</span><span class="p">();</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+			<span class="n">logger</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s">"Error while stopping server"</span><span class="p">,</span> <span class="s">"err"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+		<span class="p">}</span>
+	<span class="p">})</span>
+
+	<span class="c">// Run forever.</span>
+	<span class="k">select</span> <span class="p">{}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>Start the application by running:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>abci-cli kvstore
+</code></pre></div></div>
+
+<p>And in another terminal, run</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>abci-cli <span class="nb">echo </span>hello
+abci-cli info
+</code></pre></div></div>
+
+<p>You’ll see something like:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-&gt; data: hello
+-&gt; data.hex: 68656C6C6F
+</code></pre></div></div>
+
+<p>and:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-&gt; data: <span class="o">{</span><span class="s2">"size"</span>:0<span class="o">}</span>
+-&gt; data.hex: 7B2273697A65223A307D
+</code></pre></div></div>
+
+<p>An ABCI application must provide two things:</p>
+
+<ul>
+  <li>a socket server</li>
+  <li>a handler for ABCI messages</li>
+</ul>
+
+<p>When we run the <code class="language-plaintext highlighter-rouge">abci-cli</code> tool we open a new connection to the
+application’s socket server, send the given ABCI message, and wait for a
+response.</p>
+
+<p>The server may be generic for a particular language, and we provide a
+<a href="https://github.com/tendermint/tendermint/tree/main/abci/server">reference implementation in
+Golang</a>. See the
+<a href="https://github.com/tendermint/awesome#ecosystem">list of other ABCI implementations</a> for servers in
+other languages.</p>
+
+<p>The handler is specific to the application, and may be arbitrary, so
+long as it is deterministic and conforms to the ABCI interface
+specification.</p>
+
+<p>So when we run <code class="language-plaintext highlighter-rouge">abci-cli info</code>, we open a new connection to the ABCI
+server, which calls the <code class="language-plaintext highlighter-rouge">Info()</code> method on the application, which tells
+us the number of transactions in our Merkle tree.</p>
+
+<p>Now, since every command opens a new connection, we provide the
+<code class="language-plaintext highlighter-rouge">abci-cli console</code> and <code class="language-plaintext highlighter-rouge">abci-cli batch</code> commands, to allow multiple ABCI
+messages to be sent over a single connection.</p>
+
+<p>Running <code class="language-plaintext highlighter-rouge">abci-cli console</code> should drop you in an interactive console for
+speaking ABCI messages to your application.</p>
+
+<p>Try running these commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nb">echo </span>hello
+-&gt; code: OK
+-&gt; data: hello
+-&gt; data.hex: 0x68656C6C6F
+
+<span class="o">&gt;</span> info 
+-&gt; code: OK
+-&gt; data: <span class="o">{</span><span class="s2">"size"</span>:0<span class="o">}</span>
+-&gt; data.hex: 0x7B2273697A65223A307D
+
+<span class="o">&gt;</span> prepare_proposal <span class="s2">"abc"</span>
+-&gt; code: OK
+-&gt; log: Succeeded. Tx: abc
+
+<span class="o">&gt;</span> process_proposal <span class="s2">"abc"</span>
+-&gt; code: OK
+-&gt; status: ACCEPT
+
+<span class="o">&gt;</span> commit 
+-&gt; code: OK
+-&gt; data.hex: 0x0000000000000000
+
+<span class="o">&gt;</span> deliver_tx <span class="s2">"abc"</span>
+-&gt; code: OK
+
+<span class="o">&gt;</span> info 
+-&gt; code: OK
+-&gt; data: <span class="o">{</span><span class="s2">"size"</span>:1<span class="o">}</span>
+-&gt; data.hex: 0x7B2273697A65223A317D
+
+<span class="o">&gt;</span> commit 
+-&gt; code: OK
+-&gt; data.hex: 0x0200000000000000
+
+<span class="o">&gt;</span> query <span class="s2">"abc"</span>
+-&gt; code: OK
+-&gt; log: exists
+-&gt; height: 2
+-&gt; key: abc
+-&gt; key.hex: 616263
+-&gt; value: abc
+-&gt; value.hex: 616263
+
+<span class="o">&gt;</span> deliver_tx <span class="s2">"def=xyz"</span>
+-&gt; code: OK
+
+<span class="o">&gt;</span> commit 
+-&gt; code: OK
+-&gt; data.hex: 0x0400000000000000
+
+<span class="o">&gt;</span> query <span class="s2">"def"</span>
+-&gt; code: OK
+-&gt; log: exists
+-&gt; height: 3
+-&gt; key: def
+-&gt; key.hex: 646566
+-&gt; value: xyz
+-&gt; value.hex: 78797A
+
+<span class="o">&gt;</span> prepare_proposal <span class="s2">"preparedef"</span>
+-&gt; code: OK
+-&gt; log: Succeeded. Tx: replacedef
+
+<span class="o">&gt;</span> process_proposal <span class="s2">"replacedef"</span>
+-&gt; code: OK
+-&gt; status: ACCEPT
+
+<span class="o">&gt;</span> process_proposal <span class="s2">"preparedef"</span>
+-&gt; code: OK
+-&gt; status: REJECT
+
+<span class="o">&gt;</span> prepare_proposal 
+
+<span class="o">&gt;</span> process_proposal 
+-&gt; code: OK
+-&gt; status: ACCEPT
+
+<span class="o">&gt;</span> commit 
+-&gt; code: OK
+-&gt; data.hex: 0x0400000000000000
+</code></pre></div></div>
+
+<p>Note that if we do <code class="language-plaintext highlighter-rouge">deliver_tx "abc"</code> it will store <code class="language-plaintext highlighter-rouge">(abc, abc)</code>, but if
+we do <code class="language-plaintext highlighter-rouge">deliver_tx "abc=efg"</code> it will store <code class="language-plaintext highlighter-rouge">(abc, efg)</code>.</p>
+
+<p>You could put the commands in a file and run
+<code class="language-plaintext highlighter-rouge">abci-cli --verbose batch &lt; myfile</code>.</p>
+
+<p>Note that the <code class="language-plaintext highlighter-rouge">abci-cli</code> is designed strictly for testing and debugging. In a real
+deployment, the role of sending messages is taken by Tendermint, which
+connects to the app using three separate connections, each with its own
+pattern of messages.</p>
+
+<p>For examples of running an ABCI app with Tendermint, see the
+<a href="/v0.37/app-dev/getting-started/">getting started guide</a>.</p>
+
+<h2 id="bounties">Bounties</h2>
+
+<p>Want to write an app in your favorite language?! We’d be happy
+to add you to our <a href="https://github.com/tendermint/awesome#ecosystem">ecosystem</a>!
+See <a href="https://github.com/interchainio/funding">funding</a> opportunities from the
+<a href="https://interchain.io">Interchain Foundation</a> for implementations in new languages and more.</p>
+:ET

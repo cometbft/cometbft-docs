@@ -1,6 +1,8 @@
 ---
 title: Tendermint Core Documentation
 description: Tendermint Core is a blockchain application platform.
+footer:
+  newsletter: false
 ---
 
 # Tendermint
@@ -15,14 +17,14 @@ Tendermint serves blockchain applications.
 More formally, Tendermint Core performs Byzantine Fault Tolerant (BFT)
 State Machine Replication (SMR) for arbitrary deterministic, finite state machines.
 For more background, see [What is
-Tendermint?](/01-introduction/what-is-tendermint).
+Tendermint?](introduction/what-is-tendermint.md).
 
-To get started quickly with an example application, see the [quick start guide](/01-introduction/quick-start.md).
+To get started quickly with an example application, see the [quick start guide](introduction/quick-start.md).
 
 To learn about application development on Tendermint, see the [Application Blockchain Interface](https://github.com/tendermint/tendermint/tree/main/spec/abci).
 
 For more details on using Tendermint, see the respective documentation for
-[Tendermint Core](/05-tendermint-core/index), [benchmarking and monitoring](/07-tools/index), and [network deployments](/06-networks/index).
+[Tendermint Core](tendermint-core/), [benchmarking and monitoring](tools/), and [network deployments](networks/).
 
 To find out about the Tendermint ecosystem you can go [here](https://github.com/tendermint/awesome#ecosystem). If you are a project that is using Tendermint you are welcome to make a PR to add your project to the list.
 

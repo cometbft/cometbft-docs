@@ -1,0 +1,2335 @@
+I"�w<h1 id="methods">Methods</h1>
+
+<h2 id="methods-existing-in-abci">Methods existing in ABCI</h2>
+
+<h3 id="echo">Echo</h3>
+
+<ul>
+  <li><strong>Request</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Message (string)</code>: A string to echo back</li>
+    </ul>
+  </li>
+  <li><strong>Response</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Message (string)</code>: The input string</li>
+    </ul>
+  </li>
+  <li><strong>Usage</strong>:
+    <ul>
+      <li>Echo a string to test an abci client/server implementation</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="flush">Flush</h3>
+
+<ul>
+  <li><strong>Usage</strong>:
+    <ul>
+      <li>Signals that messages queued on the client should be flushed to
+  the server. It is called periodically by the client
+  implementation to ensure asynchronous requests are actually
+  sent, and is called immediately to make a synchronous request,
+  which returns when the Flush response comes back.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="info">Info</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>version</td>
+          <td>string</td>
+          <td>The CometBFT software semantic version</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>block_version</td>
+          <td>uint64</td>
+          <td>The CometBFT Block Protocol version</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>p2p_version</td>
+          <td>uint64</td>
+          <td>The CometBFT P2P Protocol version</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>abci_version</td>
+          <td>string</td>
+          <td>The CometBFT ABCI semantic version</td>
+          <td>4</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>data</td>
+          <td>string</td>
+          <td>Some arbitrary information</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>version</td>
+          <td>string</td>
+          <td>The application software semantic version</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>app_version</td>
+          <td>uint64</td>
+          <td>The application protocol version</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>last_block_height</td>
+          <td>int64</td>
+          <td>Latest height for which the app persisted its state</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>last_block_app_hash</td>
+          <td>bytes</td>
+          <td>Latest AppHash returned by <code class="language-plaintext highlighter-rouge">Commit</code></td>
+          <td>5</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Return information about the application state.</li>
+      <li>Used to sync CometBFT with the application during a handshake
+that happens on startup or on recovery.</li>
+      <li>The returned <code class="language-plaintext highlighter-rouge">app_version</code> will be included in the Header of every block.</li>
+      <li>CometBFT expects <code class="language-plaintext highlighter-rouge">last_block_app_hash</code> and <code class="language-plaintext highlighter-rouge">last_block_height</code> to
+be updated and persisted during <code class="language-plaintext highlighter-rouge">Commit</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>Note: Semantic version is a reference to <a href="https://semver.org/">semantic versioning</a>. Semantic versions in info will be displayed as X.X.x.</p>
+</blockquote>
+
+<h3 id="initchain">InitChain</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>time</td>
+          <td><a href="https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+          <td>Genesis time</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>chain_id</td>
+          <td>string</td>
+          <td>ID of the blockchain.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>consensus_params</td>
+          <td><a href="#consensusparams">ConsensusParams</a></td>
+          <td>Initial consensus-critical parameters.</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>validators</td>
+          <td>repeated <a href="#validatorupdate">ValidatorUpdate</a></td>
+          <td>Initial genesis validators, sorted by voting power.</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>app_state_bytes</td>
+          <td>bytes</td>
+          <td>Serialized initial application state. JSON bytes.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>initial_height</td>
+          <td>int64</td>
+          <td>Height of the initial block (typically <code class="language-plaintext highlighter-rouge">1</code>).</td>
+          <td>6</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>consensus_params</td>
+          <td><a href="#consensusparams">ConsensusParams</a></td>
+          <td>Initial consensus-critical parameters (optional)</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>validators</td>
+          <td>repeated <a href="#validatorupdate">ValidatorUpdate</a></td>
+          <td>Initial validator set (optional).</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>app_hash</td>
+          <td>bytes</td>
+          <td>Initial application hash.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Called once upon genesis.</li>
+      <li>If <code class="language-plaintext highlighter-rouge">ResponseInitChain.Validators</code> is empty, the initial validator set will be the <code class="language-plaintext highlighter-rouge">RequestInitChain.Validators</code></li>
+      <li>If <code class="language-plaintext highlighter-rouge">ResponseInitChain.Validators</code> is not empty, it will be the initial
+validator set (regardless of what is in <code class="language-plaintext highlighter-rouge">RequestInitChain.Validators</code>).</li>
+      <li>This allows the app to decide if it wants to accept the initial validator
+set proposed by CometBFT (ie. in the genesis file), or if it wants to use
+a different one (perhaps computed based on some application specific
+information in the genesis file).</li>
+      <li>Both <code class="language-plaintext highlighter-rouge">RequestInitChain.Validators</code> and <code class="language-plaintext highlighter-rouge">ResponseInitChain.Validators</code> are <a href="#validatorupdate">ValidatorUpdate</a> structs.
+So, technically, they both are <em>updating</em> the set of validators from the empty set.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="query">Query</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>data</td>
+          <td>bytes</td>
+          <td>Raw query bytes. Can be used with or in lieu of Path.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>path</td>
+          <td>string</td>
+          <td>Path field of the request URI. Can be used with or in lieu of <code class="language-plaintext highlighter-rouge">data</code>. Apps MUST interpret <code class="language-plaintext highlighter-rouge">/store</code> as a query by key on the underlying store. The key SHOULD be specified in the <code class="language-plaintext highlighter-rouge">data</code> field. Apps SHOULD allow queries over specific types like <code class="language-plaintext highlighter-rouge">/accounts/...</code> or <code class="language-plaintext highlighter-rouge">/votes/...</code></td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>The block height for which you want the query (default=0 returns data for the latest committed block). Note that this is the height of the block containing the application’s Merkle root hash, which represents the state as it was after committing the block at Height-1</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>prove</td>
+          <td>bool</td>
+          <td>Return Merkle proof with response if possible</td>
+          <td>4</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>code</td>
+          <td>uint32</td>
+          <td>Response code.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>log</td>
+          <td>string</td>
+          <td>The output of the application’s logger. <strong>May be non-deterministic.</strong></td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>info</td>
+          <td>string</td>
+          <td>Additional information. <strong>May be non-deterministic.</strong></td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>index</td>
+          <td>int64</td>
+          <td>The index of the key in the tree.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>key</td>
+          <td>bytes</td>
+          <td>The key of the matching data.</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>value</td>
+          <td>bytes</td>
+          <td>The value of the matching data.</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>proof_ops</td>
+          <td><a href="#proofops">ProofOps</a></td>
+          <td>Serialized proof for the value data, if requested, to be verified against the <code class="language-plaintext highlighter-rouge">app_hash</code> for the given Height.</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>The block height from which data was derived. Note that this is the height of the block containing the application’s Merkle root hash, which represents the state as it was after committing the block at Height-1</td>
+          <td>9</td>
+        </tr>
+        <tr>
+          <td>codespace</td>
+          <td>string</td>
+          <td>Namespace for the <code class="language-plaintext highlighter-rouge">code</code>.</td>
+          <td>10</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Query for data from the application at current or past height.</li>
+      <li>Optionally return Merkle proof.</li>
+      <li>Merkle proof includes self-describing <code class="language-plaintext highlighter-rouge">type</code> field to support many types
+  of Merkle trees and encoding formats.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="checktx">CheckTx</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>tx</td>
+          <td>bytes</td>
+          <td>The request transaction bytes</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>type</td>
+          <td>CheckTxType</td>
+          <td>One of <code class="language-plaintext highlighter-rouge">CheckTx_New</code> or <code class="language-plaintext highlighter-rouge">CheckTx_Recheck</code>. <code class="language-plaintext highlighter-rouge">CheckTx_New</code> is the default and means that a full check of the tranasaction is required. <code class="language-plaintext highlighter-rouge">CheckTx_Recheck</code> types are used when the mempool is initiating a normal recheck of a transaction.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>code</td>
+          <td>uint32</td>
+          <td>Response code.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>data</td>
+          <td>bytes</td>
+          <td>Result bytes, if any.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>gas_wanted</td>
+          <td>int64</td>
+          <td>Amount of gas requested for transaction.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>codespace</td>
+          <td>string</td>
+          <td>Namespace for the <code class="language-plaintext highlighter-rouge">code</code>.</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>sender</td>
+          <td>string</td>
+          <td>The transaction’s sender (e.g. the signer)</td>
+          <td>9</td>
+        </tr>
+        <tr>
+          <td>priority</td>
+          <td>int64</td>
+          <td>The transaction’s priority (for mempool ordering)</td>
+          <td>10</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+
+    <ul>
+      <li>Technically optional - not involved in processing blocks.</li>
+      <li>Guardian of the mempool: every node runs <code class="language-plaintext highlighter-rouge">CheckTx</code> before letting a
+transaction into its local mempool.</li>
+      <li>The transaction may come from an external user or another node</li>
+      <li><code class="language-plaintext highlighter-rouge">CheckTx</code> validates the transaction against the current state of the application,
+for example, checking signatures and account balances, but does not apply any
+of the state changes described in the transaction.</li>
+      <li>Transactions where <code class="language-plaintext highlighter-rouge">ResponseCheckTx.Code != 0</code> will be rejected - they will not be broadcast
+to other nodes or included in a proposal block.
+CometBFT attributes no other value to the response code.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="beginblock">BeginBlock</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>hash</td>
+          <td>bytes</td>
+          <td>The block’s hash. This can be derived from the block header.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>header</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#header">Header</a></td>
+          <td>The block header.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>last_commit_info</td>
+          <td><a href="#commitinfo">CommitInfo</a></td>
+          <td>Info about the last commit, including the round, and the list of validators and which ones signed the last block.</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>byzantine_validators</td>
+          <td>repeated <a href="/v0.37/spec/abci/abci++_basic_concepts/#evidence">Evidence</a></td>
+          <td>List of evidence of validators that acted maliciously.</td>
+          <td>4</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>events</td>
+          <td>repeated <a href="/v0.37/spec/abci/abci++_basic_concepts/#events">Event</a></td>
+          <td>type &amp; Key-Value events for indexing</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Signals the beginning of a new block.</li>
+      <li>Called prior to any <code class="language-plaintext highlighter-rouge">DeliverTx</code> method calls.</li>
+      <li>The header contains the height, timestamp, and more - it exactly matches the
+  CometBFT block header. We may seek to generalize this in the future.</li>
+      <li>The <code class="language-plaintext highlighter-rouge">CommitInfo</code> and <code class="language-plaintext highlighter-rouge">ByzantineValidators</code> can be used to determine
+  rewards and punishments for the validators.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="delivertx">DeliverTx</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>tx</td>
+          <td>bytes</td>
+          <td>The request transaction bytes.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>code</td>
+          <td>uint32</td>
+          <td>Response code.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>data</td>
+          <td>bytes</td>
+          <td>Result bytes, if any.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>log</td>
+          <td>string</td>
+          <td>The output of the application’s logger. <strong>May be non-deterministic.</strong></td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>info</td>
+          <td>string</td>
+          <td>Additional information. <strong>May be non-deterministic.</strong></td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>gas_wanted</td>
+          <td>int64</td>
+          <td>Amount of gas requested for transaction.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>gas_used</td>
+          <td>int64</td>
+          <td>Amount of gas consumed by transaction.</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>events</td>
+          <td>repeated <a href="/v0.37/spec/abci/abci++_basic_concepts/#events">Event</a></td>
+          <td>Type &amp; Key-Value events for indexing transactions (eg. by account).</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>codespace</td>
+          <td>string</td>
+          <td>Namespace for the <code class="language-plaintext highlighter-rouge">code</code>.</td>
+          <td>8</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>[<strong>Required</strong>] The core method of the application.</li>
+      <li><code class="language-plaintext highlighter-rouge">DeliverTx</code> is called once for each transaction in the block.</li>
+      <li>When <code class="language-plaintext highlighter-rouge">DeliverTx</code> is called, the application must execute the transaction deterministically
+  in full before returning control to CometBFT.</li>
+      <li>Alternatively, the application can apply a candidate state corresponding
+   to the same block previously executed via <code class="language-plaintext highlighter-rouge">PrepareProposal</code> or <code class="language-plaintext highlighter-rouge">ProcessProposal</code> any time between the calls to <code class="language-plaintext highlighter-rouge">BeginBlock</code>, the various
+   calls to <code class="language-plaintext highlighter-rouge">DeliverTx</code> and <code class="language-plaintext highlighter-rouge">EndBlock</code>.</li>
+      <li><code class="language-plaintext highlighter-rouge">ResponseDeliverTx.Code == 0</code> only if the transaction is fully valid.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="endblock">EndBlock</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>Height of the block just executed.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>validator_updates</td>
+          <td>repeated <a href="#validatorupdate">ValidatorUpdate</a></td>
+          <td>Changes to validator set (set voting power to 0 to remove).</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>consensus_param_updates</td>
+          <td><a href="#consensusparams">ConsensusParams</a></td>
+          <td>Changes to consensus-critical time, size, and other parameters.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>events</td>
+          <td>repeated <a href="/v0.37/spec/abci/abci++_basic_concepts/#events">Event</a></td>
+          <td>Type &amp; Key-Value events for indexing</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Signals the end of a block.</li>
+      <li>Called after all the transactions for the current block have been delivered, prior to the block’s <code class="language-plaintext highlighter-rouge">Commit</code> message.</li>
+      <li>Optional <code class="language-plaintext highlighter-rouge">validator_updates</code> triggered by block <code class="language-plaintext highlighter-rouge">H</code>. These updates affect validation
+for blocks <code class="language-plaintext highlighter-rouge">H+1</code>, <code class="language-plaintext highlighter-rouge">H+2</code>, and <code class="language-plaintext highlighter-rouge">H+3</code>.</li>
+      <li>Heights following a validator update are affected in the following way:
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">H+1</code>: <code class="language-plaintext highlighter-rouge">NextValidatorsHash</code> includes the new <code class="language-plaintext highlighter-rouge">validator_updates</code> value.</li>
+          <li><code class="language-plaintext highlighter-rouge">H+2</code>: The validator set change takes effect and <code class="language-plaintext highlighter-rouge">ValidatorsHash</code> is updated.</li>
+          <li><code class="language-plaintext highlighter-rouge">H+3</code>: <code class="language-plaintext highlighter-rouge">last_commit_info (BeginBlock)</code> is changed to include the altered validator set and <code class="language-plaintext highlighter-rouge">*_last_commit</code> fields in <code class="language-plaintext highlighter-rouge">PrepareProposal</code>, <code class="language-plaintext highlighter-rouge">ProcessProposal</code> now include the altered validator set.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">consensus_param_updates</code> returned for block <code class="language-plaintext highlighter-rouge">H</code> apply to the consensus
+params for block <code class="language-plaintext highlighter-rouge">H+1</code>. For more information on the consensus parameters,
+see the <a href="/v0.37/spec/abci/abci++_app_requirements/#consensus-parameters">application spec entry on consensus parameters</a>.</li>
+      <li><code class="language-plaintext highlighter-rouge">validator_updates</code> and <code class="language-plaintext highlighter-rouge">consensus_param_updates</code> may be empty. In this case, CometBFT will keep the current values.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="commit">Commit</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <p>| Name   | Type  | Description                        | Field Number |
+  |——–|——-|————————————|————–|</p>
+
+    <p>Commit signals the application to persist application state. It takes no parameters.</p>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>data</td>
+          <td>bytes</td>
+          <td>The Merkle root hash of the application state.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>retain_height</td>
+          <td>int64</td>
+          <td>Blocks below this height may be removed. Defaults to <code class="language-plaintext highlighter-rouge">0</code> (retain all).</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Signal the application to persist the application state.</li>
+      <li>Return an (optional) Merkle root hash of the application state</li>
+      <li><code class="language-plaintext highlighter-rouge">ResponseCommit.Data</code> is included as the <code class="language-plaintext highlighter-rouge">Header.AppHash</code> in the next block
+        <ul>
+          <li>It may be empty or hard-coded, but MUST be <strong>deterministic</strong> - it must not be a function of anything that did not come from the parameters of the execution calls (<code class="language-plaintext highlighter-rouge">BeginBlock/DeliverTx/EndBlock methods</code>) and the previous committed state.</li>
+        </ul>
+      </li>
+      <li>Later calls to <code class="language-plaintext highlighter-rouge">Query</code> can return proofs about the application state anchored
+  in this Merkle root hash</li>
+      <li>Use <code class="language-plaintext highlighter-rouge">RetainHeight</code> with caution! If all nodes in the network remove historical
+  blocks then this data is permanently lost, and no new nodes will be able to
+  join the network and bootstrap. Historical blocks may also be required for
+  other purposes, e.g. auditing, replay of non-persisted heights, light client
+  verification, and so on.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="listsnapshots">ListSnapshots</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <p>| Name   | Type  | Description                        | Field Number |
+  |——–|——-|————————————|————–|</p>
+
+    <p>Empty request asking the application for a list of snapshots.</p>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>snapshots</td>
+          <td>repeated <a href="#snapshot">Snapshot</a></td>
+          <td>List of local state snapshots.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Used during state sync to discover available snapshots on peers.</li>
+      <li>See <code class="language-plaintext highlighter-rouge">Snapshot</code> data type for details.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="loadsnapshotchunk">LoadSnapshotChunk</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>height</td>
+          <td>uint64</td>
+          <td>The height of the snapshot the chunk belongs to.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>format</td>
+          <td>uint32</td>
+          <td>The application-specific format of the snapshot the chunk belongs to.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>chunk</td>
+          <td>uint32</td>
+          <td>The chunk index, starting from <code class="language-plaintext highlighter-rouge">0</code> for the initial chunk.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>chunk</td>
+          <td>bytes</td>
+          <td>The binary chunk contents, in an arbitray format. Chunk messages cannot be larger than 16 MB <em>including metadata</em>, so 10 MB is a good starting point.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Used during state sync to retrieve snapshot chunks from peers.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="offersnapshot">OfferSnapshot</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>snapshot</td>
+          <td><a href="#snapshot">Snapshot</a></td>
+          <td>The snapshot offered for restoration.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>app_hash</td>
+          <td>bytes</td>
+          <td>The light client-verified app hash for this height, from the blockchain.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>result</td>
+          <td><a href="#result">Result</a></td>
+          <td>The result of the snapshot offer.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h4 id="result">Result</h4>
+
+<div class="language-protobuf highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kd">enum</span> <span class="n">Result</span> <span class="p">{</span>
+    <span class="na">UNKNOWN</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// Unknown result, abort all snapshot restoration</span>
+    <span class="na">ACCEPT</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// Snapshot is accepted, start applying chunks.</span>
+    <span class="na">ABORT</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  <span class="c1">// Abort snapshot restoration, and don't try any other snapshots.</span>
+    <span class="na">REJECT</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>  <span class="c1">// Reject this specific snapshot, try others.</span>
+    <span class="na">REJECT_FORMAT</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>  <span class="c1">// Reject all snapshots with this `format`, try others.</span>
+    <span class="na">REJECT_SENDER</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>  <span class="c1">// Reject all snapshots from all senders of this snapshot, try others.</span>
+  <span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Usage</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">OfferSnapshot</code> is called when bootstrapping a node using state sync. The application may
+  accept or reject snapshots as appropriate. Upon accepting, CometBFT will retrieve and
+  apply snapshot chunks via <code class="language-plaintext highlighter-rouge">ApplySnapshotChunk</code>. The application may also choose to reject a
+  snapshot in the chunk response, in which case it should be prepared to accept further
+  <code class="language-plaintext highlighter-rouge">OfferSnapshot</code> calls.</li>
+      <li>Only <code class="language-plaintext highlighter-rouge">AppHash</code> can be trusted, as it has been verified by the light client. Any other data
+  can be spoofed by adversaries, so applications should employ additional verification schemes
+  to avoid denial-of-service attacks. The verified <code class="language-plaintext highlighter-rouge">AppHash</code> is automatically checked against
+  the restored application at the end of snapshot restoration.</li>
+      <li>For more information, see the <code class="language-plaintext highlighter-rouge">Snapshot</code> data type or the <a href="/v0.37/spec/p2p/messages/state-sync/">state sync section</a>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="applysnapshotchunk">ApplySnapshotChunk</h3>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>index</td>
+          <td>uint32</td>
+          <td>The chunk index, starting from <code class="language-plaintext highlighter-rouge">0</code>. CometBFT applies chunks sequentially.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>chunk</td>
+          <td>bytes</td>
+          <td>The binary chunk contents, as returned by <code class="language-plaintext highlighter-rouge">LoadSnapshotChunk</code>.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>sender</td>
+          <td>string</td>
+          <td>The P2P ID of the node who sent this chunk.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>result</td>
+          <td>Result  (see below)</td>
+          <td>The result of applying this chunk.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>refetch_chunks</td>
+          <td>repeated uint32</td>
+          <td>Refetch and reapply the given chunks, regardless of <code class="language-plaintext highlighter-rouge">result</code>. Only the listed chunks will be refetched, and reapplied in sequential order.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>reject_senders</td>
+          <td>repeated string</td>
+          <td>Reject the given P2P senders, regardless of <code class="language-plaintext highlighter-rouge">Result</code>. Any chunks already applied will not be refetched unless explicitly requested, but queued chunks from these senders will be discarded, and new chunks or other snapshots rejected.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<div class="language-proto highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kd">enum</span> <span class="n">Result</span> <span class="p">{</span>
+    <span class="na">UNKNOWN</span>         <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// Unknown result, abort all snapshot restoration</span>
+    <span class="na">ACCEPT</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// The chunk was accepted.</span>
+    <span class="na">ABORT</span>           <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  <span class="c1">// Abort snapshot restoration, and don't try any other snapshots.</span>
+    <span class="na">RETRY</span>           <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>  <span class="c1">// Reapply this chunk, combine with `RefetchChunks` and `RejectSenders` as appropriate.</span>
+    <span class="na">RETRY_SNAPSHOT</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>  <span class="c1">// Restart this snapshot from `OfferSnapshot`, reusing chunks unless instructed otherwise.</span>
+    <span class="na">REJECT_SNAPSHOT</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>  <span class="c1">// Reject this snapshot, try a different one.</span>
+  <span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Usage</strong>:
+    <ul>
+      <li>The application can choose to refetch chunks and/or ban P2P peers as appropriate. CometBFT
+  will not do this unless instructed by the application.</li>
+      <li>The application may want to verify each chunk, e.g. by attaching chunk hashes in
+  <code class="language-plaintext highlighter-rouge">Snapshot.Metadata</code> and/or incrementally verifying contents against <code class="language-plaintext highlighter-rouge">AppHash</code>.</li>
+      <li>When all chunks have been accepted, CometBFT will make an ABCI <code class="language-plaintext highlighter-rouge">Info</code> call to verify that
+  <code class="language-plaintext highlighter-rouge">LastBlockAppHash</code> and <code class="language-plaintext highlighter-rouge">LastBlockHeight</code> matches the expected values, and record the
+  <code class="language-plaintext highlighter-rouge">AppVersion</code> in the node state. It then switches to block sync or consensus and joins the
+  network.</li>
+      <li>If CometBFT is unable to retrieve the next chunk after some time (e.g. because no suitable
+  peers are available), it will reject the snapshot and try a different one via <code class="language-plaintext highlighter-rouge">OfferSnapshot</code>.
+  The application should be prepared to reset and accept it or abort as appropriate.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="new-methods-introduced-in-abci">New methods introduced in ABCI++</h2>
+
+<h3 id="prepareproposal">PrepareProposal</h3>
+
+<h4 id="parameters-and-types">Parameters and Types</h4>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>max_tx_bytes</td>
+          <td>int64</td>
+          <td>Currently configured maximum size in bytes taken by the modified transactions.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>txs</td>
+          <td>repeated bytes</td>
+          <td>Preliminary list of transactions that have been picked as part of the block to propose.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>local_last_commit</td>
+          <td><a href="#extendedcommitinfo">ExtendedCommitInfo</a></td>
+          <td>Info about the last commit, obtained locally from CometBFT’s data structures.</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>misbehavior</td>
+          <td>repeated <a href="#misbehavior">Misbehavior</a></td>
+          <td>List of information about validators that misbehaved.</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>The height of the block that will be proposed.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>time</td>
+          <td><a href="https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+          <td>Timestamp of the block that that will be proposed.</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>next_validators_hash</td>
+          <td>bytes</td>
+          <td>Merkle root of the next validator set.</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>proposer_address</td>
+          <td>bytes</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#address">Address</a> of the validator that is creating the proposal.</td>
+          <td>8</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>txs</td>
+          <td>repeated bytes</td>
+          <td>Possibly modified list of transactions that have been picked as part of the proposed block.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code>’s parameters <code class="language-plaintext highlighter-rouge">txs</code>, <code class="language-plaintext highlighter-rouge">misbehavior</code>, <code class="language-plaintext highlighter-rouge">height</code>, <code class="language-plaintext highlighter-rouge">time</code>,
+<code class="language-plaintext highlighter-rouge">next_validators_hash</code>, and <code class="language-plaintext highlighter-rouge">proposer_address</code> are the same as in <code class="language-plaintext highlighter-rouge">RequestProcessProposal</code>.</li>
+      <li><code class="language-plaintext highlighter-rouge">RequestPrepareProposal.local_last_commit</code> is a set of the precommit votes that allowed the
+decision of the previous block.</li>
+      <li>The <code class="language-plaintext highlighter-rouge">height</code>, <code class="language-plaintext highlighter-rouge">time</code>, and <code class="language-plaintext highlighter-rouge">proposer_address</code> values match the values from the header of the
+proposed block.</li>
+      <li><code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code> contains a preliminary set of transactions <code class="language-plaintext highlighter-rouge">txs</code> that CometBFT
+retrieved from the mempool, called <em>raw proposal</em>. The Application can modify this
+set and return a modified set of transactions via <code class="language-plaintext highlighter-rouge">ResponsePrepareProposal.txs</code> .
+        <ul>
+          <li>The Application <em>can</em> modify the raw proposal: it can reorder, remove or add transactions.
+Let <code class="language-plaintext highlighter-rouge">tx</code> be a transaction in <code class="language-plaintext highlighter-rouge">txs</code> (set of transactions within <code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code>):
+            <ul>
+              <li>If the Application considers that <code class="language-plaintext highlighter-rouge">tx</code> should not be proposed in this block, e.g.,
+there are other transactions with higher priority, then it should not include it in
+<code class="language-plaintext highlighter-rouge">ResponsePrepareProposal.txs</code>. However, this will not remove <code class="language-plaintext highlighter-rouge">tx</code> from the mempool.</li>
+              <li>If the Application wants to add a new transaction to the proposed block, then the
+Application includes it in <code class="language-plaintext highlighter-rouge">ResponsePrepareProposal.txs</code>. CometBFT will not add
+the transaction to the mempool.</li>
+            </ul>
+          </li>
+          <li>The Application should be aware that removing and adding transactions may compromise
+<em>traceability</em>.
+            <blockquote>
+              <p>Consider the following example: the Application transforms a client-submitted
+  transaction <code class="language-plaintext highlighter-rouge">t1</code> into a second transaction <code class="language-plaintext highlighter-rouge">t2</code>, i.e., the Application asks CometBFT
+  to remove <code class="language-plaintext highlighter-rouge">t1</code> from the block and add <code class="language-plaintext highlighter-rouge">t2</code> to the block. If a client wants to eventually check what
+  happened to <code class="language-plaintext highlighter-rouge">t1</code>, it will discover that <code class="language-plaintext highlighter-rouge">t1</code> is not in a
+  committed block (assuming a <em>re-CheckTx</em> evited it from the mempool), getting the wrong idea that <code class="language-plaintext highlighter-rouge">t1</code> did not make it into a block. Note
+  that <code class="language-plaintext highlighter-rouge">t2</code> <em>will be</em> in a committed block, but unless the Application tracks this
+  information, no component will be aware of it. Thus, if the Application wants
+  traceability, it is its responsability to support it. For instance, the Application
+  could attach to a transformed transaction a list with the hashes of the transactions it
+  derives from.</p>
+            </blockquote>
+          </li>
+        </ul>
+      </li>
+      <li>CometBFT MAY include a list of transactions in <code class="language-plaintext highlighter-rouge">RequestPrepareProposal.txs</code> whose total
+size in bytes exceeds <code class="language-plaintext highlighter-rouge">RequestPrepareProposal.max_tx_bytes</code>.
+Therefore, if the size of <code class="language-plaintext highlighter-rouge">RequestPrepareProposal.txs</code> is greater than
+<code class="language-plaintext highlighter-rouge">RequestPrepareProposal.max_tx_bytes</code>, the Application MUST remove transactions to ensure
+that the <code class="language-plaintext highlighter-rouge">RequestPrepareProposal.max_tx_bytes</code> limit is respected by those transactions
+returned in <code class="language-plaintext highlighter-rouge">ResponsePrepareProposal.txs</code> .</li>
+      <li>As a result of executing the prepared proposal, the Application may produce block events or transaction events.
+The Application must keep those events until a block is decided. It will then forward the events to the <code class="language-plaintext highlighter-rouge">BeginBlock-DeliverTx-EndBlock</code> functions depending on where each event should be placed, thereby returning the events to CometBFT.</li>
+      <li>CometBFT does NOT provide any additional validity checks (such as checking for duplicate
+transactions).
+<!--
+As a sanity check, CometBFT will check the returned parameters for validity if the Application modified them.
+In particular, `ResponsePrepareProposal.txs` will be deemed invalid if there are duplicate transactions in the list.
+ --></li>
+      <li>If CometBFT fails to validate the <code class="language-plaintext highlighter-rouge">ResponsePrepareProposal</code>, CometBFT will assume the
+Application is faulty and crash.</li>
+      <li>The implementation of <code class="language-plaintext highlighter-rouge">PrepareProposal</code> can be non-deterministic.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="when-does-cometbft-call-prepareproposal">When does CometBFT call <code class="language-plaintext highlighter-rouge">PrepareProposal</code>?</h4>
+
+<p>When a validator <em>p</em> enters consensus round <em>r</em>, height <em>h</em>, in which <em>p</em> is the proposer,
+and <em>p</em>’s <em>validValue</em> is <code class="language-plaintext highlighter-rouge">nil</code>:</p>
+
+<ol>
+  <li>CometBFT collects outstanding transactions from <em>p</em>’s mempool
+    <ul>
+      <li>the transactions will be collected in order of priority</li>
+      <li><em>p</em>’s CometBFT creates a block header.</li>
+    </ul>
+  </li>
+  <li><em>p</em>’s CometBFT calls <code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code> with the newly generated block, the local
+commit of the previous height (with vote extensions), and any outstanding evidence of
+misbehavior. The call is synchronous: CometBFT’s execution will block until the Application
+returns from the call.</li>
+  <li>The Application uses the information received (transactions, commit info, misbehavior, time) to
+ (potentially) modify the proposal.
+    <ul>
+      <li>the Application MAY fully execute the block and produce a candidate state — immediate
+execution</li>
+      <li>the Application can manipulate transactions:
+        <ul>
+          <li>leave transactions untouched</li>
+          <li>add new transactions (not present initially) to the proposal</li>
+          <li>remove transactions from the proposal (but not from the mempool thus effectively <em>delaying</em> them) - the
+Application does not include the transaction in <code class="language-plaintext highlighter-rouge">ResponsePrepareProposal.txs</code>.</li>
+          <li>modify transactions (e.g. aggregate them). As explained above, this compromises client traceability, unless
+it is implemented at the Application level.</li>
+          <li>reorder transactions - the Application reorders transactions in the list</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>The Application includes the transaction list (whether modified or not) in the return parameters
+(see the rules in section <em>Usage</em>), and returns from the call.</li>
+  <li><em>p</em> uses the (possibly) modified block as <em>p</em>’s proposal in round <em>r</em>, height <em>h</em>.</li>
+</ol>
+
+<p>Note that, if <em>p</em> has a non-<code class="language-plaintext highlighter-rouge">nil</code> <em>validValue</em> in round <em>r</em>, height <em>h</em>,
+the consensus algorithm will use it as proposal and will not call <code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code>.</p>
+
+<h3 id="processproposal">ProcessProposal</h3>
+
+<h4 id="parameters-and-types-1">Parameters and Types</h4>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>txs</td>
+          <td>repeated bytes</td>
+          <td>List of transactions of the proposed block.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>proposed_last_commit</td>
+          <td><a href="#commitinfo">CommitInfo</a></td>
+          <td>Info about the last commit, obtained from the information in the proposed block.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>misbehavior</td>
+          <td>repeated <a href="#misbehavior">Misbehavior</a></td>
+          <td>List of information about validators that misbehaved.</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>hash</td>
+          <td>bytes</td>
+          <td>The hash of the proposed block.</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>The height of the proposed block.</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>time</td>
+          <td><a href="https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+          <td>Timestamp of the proposed block.</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>next_validators_hash</td>
+          <td>bytes</td>
+          <td>Merkle root of the next validator set.</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>proposer_address</td>
+          <td>bytes</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#address">Address</a> of the validator that created the proposal.</td>
+          <td>8</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>status</td>
+          <td><a href="#proposalstatus">ProposalStatus</a></td>
+          <td><code class="language-plaintext highlighter-rouge">enum</code> that signals if the application finds the proposal valid.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Contains all information on the proposed block needed to fully execute it.
+        <ul>
+          <li>The Application may fully execute the block as though it was handling the calls to <code class="language-plaintext highlighter-rouge">BeginBlock-DeliverTx-EndBlock</code>.</li>
+          <li>However, any resulting state changes must be kept as <em>candidate state</em>,
+and the Application should be ready to discard it in case another block is decided.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">RequestProcessProposal</code> is also called at the proposer of a round. The reason for this is to
+inform the Application of the block header’s hash, which cannot be done at <code class="language-plaintext highlighter-rouge">PrepareProposal</code>
+time. In this case, the call to <code class="language-plaintext highlighter-rouge">RequestProcessProposal</code> occurs right after the call to
+<code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code>.</li>
+      <li>The height and time values match the values from the header of the proposed block.</li>
+      <li>If <code class="language-plaintext highlighter-rouge">ResponseProcessProposal.status</code> is <code class="language-plaintext highlighter-rouge">REJECT</code>, consensus assumes the proposal received
+is not valid.</li>
+      <li>The Application MAY fully execute the block — immediate execution</li>
+      <li>The implementation of <code class="language-plaintext highlighter-rouge">ProcessProposal</code> MUST be deterministic. Moreover, the value of
+<code class="language-plaintext highlighter-rouge">ResponseProcessProposal.status</code> MUST <strong>exclusively</strong> depend on the parameters passed in
+the call to <code class="language-plaintext highlighter-rouge">RequestProcessProposal</code>, and the last committed Application state
+(see <a href="/v0.37/spec/abci/abci++_app_requirements/">Requirements</a> section).</li>
+      <li>Moreover, application implementors SHOULD always set <code class="language-plaintext highlighter-rouge">ResponseProcessProposal.status</code> to <code class="language-plaintext highlighter-rouge">ACCEPT</code>,
+unless they <em>really</em> know what the potential liveness implications of returning <code class="language-plaintext highlighter-rouge">REJECT</code> are.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="when-does-cometbft-call-processproposal">When does CometBFT call <code class="language-plaintext highlighter-rouge">ProcessProposal</code>?</h4>
+
+<p>When a node <em>p</em> enters consensus round <em>r</em>, height <em>h</em>, in which <em>q</em> is the proposer (possibly <em>p</em> = <em>q</em>):</p>
+
+<ol>
+  <li><em>p</em> sets up timer <code class="language-plaintext highlighter-rouge">ProposeTimeout</code>.</li>
+  <li>If <em>p</em> is the proposer, <em>p</em> executes steps 1-6 in <a href="#prepareproposal">PrepareProposal</a>.</li>
+  <li>Upon reception of Proposal message (which contains the header) for round <em>r</em>, height <em>h</em> from
+<em>q</em>, <em>p</em> verifies the block header.</li>
+  <li>Upon reception of Proposal message, along with all the block parts, for round <em>r</em>, height <em>h</em>
+from <em>q</em>, <em>p</em> follows the validators’ algorithm to check whether it should prevote for the
+proposed block, or <code class="language-plaintext highlighter-rouge">nil</code>.</li>
+  <li>If the validators’ consensus algorithm indicates <em>p</em> should prevote for the proposed block:
+    <ol>
+      <li>CometBFT calls <code class="language-plaintext highlighter-rouge">RequestProcessProposal</code> with the block. The call is synchronous.</li>
+      <li>The Application checks/processes the proposed block, which is read-only, and returns
+<code class="language-plaintext highlighter-rouge">ACCEPT</code> or <code class="language-plaintext highlighter-rouge">REJECT</code> in the <code class="language-plaintext highlighter-rouge">ResponseProcessProposal.status</code> field.
+        <ul>
+          <li>The Application, depending on its needs, may call <code class="language-plaintext highlighter-rouge">ResponseProcessProposal</code>
+            <ul>
+              <li>either after it has completely processed the block (immediate execution),</li>
+              <li>or after doing some basic checks, and process the block asynchronously. In this case the
+Application will not be able to reject the block, or force prevote/precommit <code class="language-plaintext highlighter-rouge">nil</code>
+afterwards.</li>
+              <li>or immediately, returning <code class="language-plaintext highlighter-rouge">ACCEPT</code>, if <em>p</em> is not a validator
+and the Application does not want non-validating nodes to handle <code class="language-plaintext highlighter-rouge">ProcessProposal</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>If <em>p</em> is a validator and the returned value is
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">ACCEPT</code>: <em>p</em> prevotes on this proposal for round <em>r</em>, height <em>h</em>.</li>
+          <li><code class="language-plaintext highlighter-rouge">REJECT</code>: <em>p</em> prevotes <code class="language-plaintext highlighter-rouge">nil</code>.
+&lt;!–
+            <h3 id="extendvote">ExtendVote</h3>
+          </li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<h4 id="parameters-and-types-2">Parameters and Types</h4>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>hash</td>
+          <td>bytes</td>
+          <td>The header hash of the proposed block that the vote extension is to refer to.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>Height of the proposed block (for sanity check).</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>vote_extension</td>
+          <td>bytes</td>
+          <td>Information signed by by CometBFT. Can have 0 length.</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ResponseExtendVote.vote_extension</code> is application-generated information that will be signed
+by CometBFT and attached to the Precommit message.</li>
+      <li>The Application may choose to use an empty vote extension (0 length).</li>
+      <li><code class="language-plaintext highlighter-rouge">RequestExtendVote.hash</code> corresponds to the hash of a proposed block that was made available
+to the Application in a previous call to <code class="language-plaintext highlighter-rouge">ProcessProposal</code> for the current height.</li>
+      <li><code class="language-plaintext highlighter-rouge">ResponseExtendVote.vote_extension</code> will only be attached to a non-<code class="language-plaintext highlighter-rouge">nil</code> Precommit message. If the consensus algorithm is to
+precommit <code class="language-plaintext highlighter-rouge">nil</code>, it will not call <code class="language-plaintext highlighter-rouge">RequestExtendVote</code>.</li>
+      <li>The Application logic that creates the extension can be non-deterministic.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="when-does-cometbft-call-extendvote">When does CometBFT call <code class="language-plaintext highlighter-rouge">ExtendVote</code>?</h4>
+
+<p>When a validator <em>p</em> is in consensus state <em>prevote</em> of round <em>r</em>, height <em>h</em>, in which <em>q</em> is the proposer; and <em>p</em> has received</p>
+
+<ul>
+  <li>the Proposal message <em>v</em> for round <em>r</em>, height <em>h</em>, along with all the block parts, from <em>q</em>,</li>
+  <li><code class="language-plaintext highlighter-rouge">Prevote</code> messages from <em>2f + 1</em> validators’ voting power for round <em>r</em>, height <em>h</em>, prevoting for the same block <em>id(v)</em>,</li>
+</ul>
+
+<p>then <em>p</em> locks <em>v</em>  and sends a Precommit message in the following way</p>
+
+<ol>
+  <li><em>p</em> sets <em>lockedValue</em> and <em>validValue</em> to <em>v</em>, and sets <em>lockedRound</em> and <em>validRound</em> to <em>r</em></li>
+  <li><em>p</em>’s CometBFT calls <code class="language-plaintext highlighter-rouge">RequestExtendVote</code> with <em>id(v)</em> (<code class="language-plaintext highlighter-rouge">RequestExtendVote.hash</code>). The call is synchronous.</li>
+  <li>The Application returns an array of bytes, <code class="language-plaintext highlighter-rouge">ResponseExtendVote.extension</code>, which is not interpreted by the consensus algorithm.</li>
+  <li><em>p</em> includes <code class="language-plaintext highlighter-rouge">ResponseExtendVote.extension</code> in a field of type <a href="#canonicalvoteextension">CanonicalVoteExtension</a>,
+it then populates the other fields in <a href="#canonicalvoteextension">CanonicalVoteExtension</a>, and signs the populated
+data structure.</li>
+  <li><em>p</em> constructs and signs the <a href="/v0.37/spec/core/data_structures.md#canonicalvote">CanonicalVote</a> structure.</li>
+  <li><em>p</em> constructs the Precommit message (i.e. <a href="/v0.37/spec/core/data_structures.md#vote">Vote</a> structure)
+using <a href="#canonicalvoteextension">CanonicalVoteExtension</a> and <a href="/v0.37/spec/core/data_structures.md#canonicalvote">CanonicalVote</a>.</li>
+  <li><em>p</em> broadcasts the Precommit message.</li>
+</ol>
+
+<p>In the cases when <em>p</em> is to broadcast <code class="language-plaintext highlighter-rouge">precommit nil</code> messages (either <em>2f+1</em> <code class="language-plaintext highlighter-rouge">prevote nil</code> messages received,
+or <em>timeoutPrevote</em> triggered), <em>p</em>’s CometBFT does <strong>not</strong> call <code class="language-plaintext highlighter-rouge">RequestExtendVote</code> and will not include
+a <a href="#canonicalvoteextension">CanonicalVoteExtension</a> field in the <code class="language-plaintext highlighter-rouge">precommit nil</code> message.</p>
+
+<h3 id="verifyvoteextension">VerifyVoteExtension</h3>
+
+<h4 id="parameters-and-types-3">Parameters and Types</h4>
+
+<ul>
+  <li>
+    <p><strong>Request</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>hash</td>
+          <td>bytes</td>
+          <td>The hash of the proposed block that the vote extension refers to.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>validator_address</td>
+          <td>bytes</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#address">Address</a> of the validator that signed the extension.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>Height of the block (for sanity check).</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>vote_extension</td>
+          <td>bytes</td>
+          <td>Application-specific information signed by CometBFT. Can have 0 length.</td>
+          <td>4</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Response</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>status</td>
+          <td><a href="#verifystatus">VerifyStatus</a></td>
+          <td><code class="language-plaintext highlighter-rouge">enum</code> signaling if the application accepts the vote extension</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension.vote_extension</code> can be an empty byte array. The Application’s
+interpretation of it should be
+that the Application running at the process that sent the vote chose not to extend it.
+CometBFT will always call <code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension</code>, even for 0 length vote extensions.</li>
+      <li><code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension</code> is not called for precommit votes sent by the local process.</li>
+      <li><code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension.hash</code> refers to a proposed block. There is not guarantee that
+this proposed block has previously been exposed to the Application via <code class="language-plaintext highlighter-rouge">ProcessProposal</code>.</li>
+      <li>If <code class="language-plaintext highlighter-rouge">ResponseVerifyVoteExtension.status</code> is <code class="language-plaintext highlighter-rouge">REJECT</code>, the consensus algorithm will reject the whole received vote.
+See the <a href="/v0.37/spec/abci/abci++_app_requirements/">Requirements</a> section to understand the potential
+liveness implications of this.</li>
+      <li>The implementation of <code class="language-plaintext highlighter-rouge">VerifyVoteExtension</code> MUST be deterministic. Moreover, the value of
+<code class="language-plaintext highlighter-rouge">ResponseVerifyVoteExtension.status</code> MUST <strong>exclusively</strong> depend on the parameters passed in
+the call to <code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension</code>, and the last committed Application state
+(see <a href="/v0.37/spec/abci/abci++_app_requirements/">Requirements</a> section).</li>
+      <li>Moreover, application implementers SHOULD always set <code class="language-plaintext highlighter-rouge">ResponseVerifyVoteExtension.status</code> to <code class="language-plaintext highlighter-rouge">ACCEPT</code>,
+unless they <em>really</em> know what the potential liveness implications of returning <code class="language-plaintext highlighter-rouge">REJECT</code> are.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="when-does-cometbft-call-verifyvoteextension">When does CometBFT call <code class="language-plaintext highlighter-rouge">VerifyVoteExtension</code>?</h4>
+
+<p>When a node <em>p</em> is in consensus round <em>r</em>, height <em>h</em>, and <em>p</em> receives a Precommit
+message for round <em>r</em>, height <em>h</em> from validator <em>q</em> (<em>q</em> ≠ <em>p</em>):</p>
+
+<ol>
+  <li>If the Precommit message does not contain a vote extension with a valid signature, <em>p</em>
+discards the Precommit message as invalid.
+    <ul>
+      <li>a 0-length vote extension is valid as long as its accompanying signature is also valid.</li>
+    </ul>
+  </li>
+  <li>Else, <em>p</em>’s CometBFT calls <code class="language-plaintext highlighter-rouge">RequestVerifyVoteExtension</code>.</li>
+  <li>The Application returns <code class="language-plaintext highlighter-rouge">ACCEPT</code> or <code class="language-plaintext highlighter-rouge">REJECT</code> via <code class="language-plaintext highlighter-rouge">ResponseVerifyVoteExtension.status</code>.</li>
+  <li>If the Application returns
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ACCEPT</code>, <em>p</em> will keep the received vote, together with its corresponding
+vote extension in its internal data structures. It will be used to populate the <a href="#extendedcommitinfo">ExtendedCommitInfo</a>
+structure in calls to <code class="language-plaintext highlighter-rouge">RequestPrepareProposal</code>, in rounds of height <em>h + 1</em> where <em>p</em> is the proposer.</li>
+      <li><code class="language-plaintext highlighter-rouge">REJECT</code>, <em>p</em> will deem the Precommit message invalid and discard it.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>–&gt;</p>
+
+<!--
+### FinalizeBlock
+
+#### Parameters and Types
+
+* **Request**:
+
+    | Name                 | Type                                            | Description                                                                               | Field Number |
+    |----------------------|-------------------------------------------------|-------------------------------------------------------------------------------------------|--------------|
+    | txs                  | repeated bytes                                  | List of transactions committed as part of the block.                                      | 1            |
+    | decided_last_commit  | [CommitInfo](#commitinfo)                       | Info about the last commit, obtained from the block that was just decided.                | 2            |
+    | misbehavior          | repeated [Misbehavior](#misbehavior)            | List of information about validators that misbehaved.                                     | 3            |
+    | hash                 | bytes                                           | The block's hash.                                                                         | 4            |
+    | height               | int64                                           | The height of the finalized block.                                                        | 5            |
+    | time                 | [google.protobuf.Timestamp][protobuf-timestamp] | Timestamp of the finalized block.                                                         | 6            |
+    | next_validators_hash | bytes                                           | Merkle root of the next validator set.                                                    | 7            |
+    | proposer_address     | bytes                                           | [Address](/v0.37/spec/core/data_structures.md#address) of the validator that created the proposal. | 8            |
+
+* **Response**:
+
+    | Name                    | Type                                                        | Description                                                                      | Field Number |
+    |-------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------|--------------|
+    | events                  | repeated [Event](/v0.37/spec/abci/abci++_basic_concepts/#events)           | Type & Key-Value events for indexing                                             | 1            |
+    | tx_results              | repeated [ExecTxResult](#exectxresult)                      | List of structures containing the data resulting from executing the transactions | 2            |
+    | validator_updates       | repeated [ValidatorUpdate](#validatorupdate)                | Changes to validator set (set voting power to 0 to remove).                      | 3            |
+    | consensus_param_updates | [ConsensusParams](#consensusparams)                         | Changes to gas, size, and other consensus-related parameters.                    | 4            |
+    | app_hash                | bytes                                                       | The Merkle root hash of the application state.                                   | 5            |
+
+* **Usage**:
+    * Contains the fields of the newly decided block.
+    * This method is equivalent to the call sequence `BeginBlock`, [`DeliverTx`],
+      and `EndBlock` in the previous version of ABCI.
+    * The height and time values match the values from the header of the proposed block.
+    * The Application can use `RequestFinalizeBlock.decided_last_commit` and `RequestFinalizeBlock.misbehavior`
+      to determine rewards and punishments for the validators.
+    * The Application executes the transactions in `RequestFinalizeBlock.txs` deterministically,
+      according to the rules set up by the Application, before returning control to CometBFT.
+      Alternatively, it can apply the candidate state corresponding to the same block previously
+      executed via `PrepareProposal` or `ProcessProposal`.
+    * `ResponseFinalizeBlock.tx_results[i].Code == 0` only if the _i_-th transaction is fully valid.
+    * The Application must provide values for `ResponseFinalizeBlock.app_hash`,
+      `ResponseFinalizeBlock.tx_results`, `ResponseFinalizeBlock.validator_updates`, and
+      `ResponseFinalizeBlock.consensus_param_updates` as a result of executing the block.
+        * The values for `ResponseFinalizeBlock.validator_updates`, or
+          `ResponseFinalizeBlock.consensus_param_updates` may be empty. In this case, CometBFT will keep
+          the current values.
+        * `ResponseFinalizeBlock.validator_updates`, triggered by block `H`, affect validation
+          for blocks `H+1`, `H+2`, and `H+3`. Heights following a validator update are affected in the following way:
+            * Height `H+1`: `NextValidatorsHash` includes the new `validator_updates` value.
+            * Height `H+2`: The validator set change takes effect and `ValidatorsHash` is updated.
+            * Height `H+3`: `*_last_commit` fields in `PrepareProposal`, `ProcessProposal`, and
+              `FinalizeBlock` now include the altered validator set.
+        * `ResponseFinalizeBlock.consensus_param_updates` returned for block `H` apply to the consensus
+          params for block `H+1`. For more information on the consensus parameters,
+          see the [consensus parameters](./abci%2B%2B_app_requirements.md#consensus-parameters)
+          section.
+    * `ResponseFinalizeBlock.app_hash` contains an (optional) Merkle root hash of the application state.
+    * `ResponseFinalizeBlock.app_hash` is included as the `Header.AppHash` in the next block.
+        * `ResponseFinalizeBlock.app_hash` may also be empty or hard-coded, but MUST be
+          **deterministic** - it must not be a function of anything that did not come from the parameters
+          of `RequestFinalizeBlock` and the previous committed state.
+    * Later calls to `Query` can return proofs about the application state anchored
+      in this Merkle root hash.
+    * The implementation of `FinalizeBlock` MUST be deterministic, since it is
+      making the Application's state evolve in the context of state machine replication.
+    * Currently, CometBFT will fill up all fields in `RequestFinalizeBlock`, even if they were
+      already passed on to the Application via `RequestPrepareProposal` or `RequestProcessProposal`.
+
+#### When does CometBFT call `FinalizeBlock`?
+
+When a node _p_ is in consensus height _h_, and _p_ receives
+
+* the Proposal message with block _v_ for a round _r_, along with all its block parts, from _q_,
+  which is the proposer of round _r_, height _h_,
+* `Precommit` messages from _2f + 1_ validators' voting power for round _r_, height _h_,
+  precommitting the same block _id(v)_,
+
+then _p_ decides block _v_ and finalizes consensus for height _h_ in the following way
+
+1. _p_ persists _v_ as the decision for height _h_.
+2. _p_'s CometBFT calls `RequestFinalizeBlock` with _v_'s data. The call is synchronous.
+3. _p_'s Application executes block _v_.
+4. _p_'s Application calculates and returns the _AppHash_, along with a list containing
+   the outputs of each of the transactions executed.
+5. _p_'s CometBFT hashes all the transaction outputs and stores it in _ResultHash_.
+6. _p_'s CometBFT persists the transaction outputs, _AppHash_, and _ResultsHash_.
+7. _p_'s CometBFT locks the mempool &mdash; no calls to `CheckTx` on new transactions.
+8. _p_'s CometBFT calls `RequestCommit` to instruct the Application to persist its state.
+9. _p_'s CometBFT, optionally, re-checks all outstanding transactions in the mempool
+   against the newly persisted Application state.
+10. _p_'s CometBFT unlocks the mempool &mdash; newly received transactions can now be checked.
+11. _p_ starts consensus for height _h+1_, round 0
+-->
+<h2 id="data-types-existing-in-abci">Data Types existing in ABCI</h2>
+
+<p>Most of the data structures used in ABCI are shared <a href="/v0.37/spec/core/data_structures.md">common data structures</a>. In certain cases, ABCI uses different data structures which are documented here:</p>
+
+<h3 id="validator">Validator</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>address</td>
+          <td>bytes</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#address">Address</a> of validator</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>power</td>
+          <td>int64</td>
+          <td>Voting power of the validator</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Validator identified by address</li>
+      <li>Used in RequestBeginBlock as part of VoteInfo</li>
+      <li>Does not include PubKey to avoid sending potentially large quantum pubkeys
+  over the ABCI</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="validatorupdate">ValidatorUpdate</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>pub_key</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#pub_key">Public Key</a></td>
+          <td>Public key of the validator</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>power</td>
+          <td>int64</td>
+          <td>Voting power of the validator</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Validator identified by PubKey</li>
+      <li>Used to tell CometBFT to update the validator set</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="misbehavior">Misbehavior</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>type</td>
+          <td><a href="#misbehaviortype">MisbehaviorType</a></td>
+          <td>Type of the misbehavior. An enum of possible misbehaviors.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>validator</td>
+          <td><a href="#validator">Validator</a></td>
+          <td>The offending validator</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>height</td>
+          <td>int64</td>
+          <td>Height when the offense occurred</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>time</td>
+          <td><a href="https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+          <td>Timestamp of the block that was committed at height <code class="language-plaintext highlighter-rouge">height</code></td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>total_voting_power</td>
+          <td>int64</td>
+          <td>Total voting power of the validator set at height <code class="language-plaintext highlighter-rouge">height</code></td>
+          <td>5</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h4 id="misbehaviortype">MisbehaviorType</h4>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong></p>
+
+    <p>MisbehaviorType is an enum with the listed fields:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>UNKNOWN</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <td>DUPLICATE_VOTE</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>LIGHT_CLIENT_ATTACK</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="consensusparams">ConsensusParams</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>block</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#blockparams">BlockParams</a></td>
+          <td>Parameters limiting the size of a block and time between consecutive blocks.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>evidence</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#evidenceparams">EvidenceParams</a></td>
+          <td>Parameters limiting the validity of evidence of byzantine behaviour.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>validator</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#validatorparams">ValidatorParams</a></td>
+          <td>Parameters limiting the types of public keys validators can use.</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>version</td>
+          <td><a href="/v0.37/spec/core/data_structures.md#versionparams">VersionsParams</a></td>
+          <td>The ABCI application version.</td>
+          <td>4</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="proofops">ProofOps</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ops</td>
+          <td>repeated <a href="#proofop">ProofOp</a></td>
+          <td>List of chained Merkle proofs, of possibly different types. The Merkle root of one op is the value being proven in the next op. The Merkle root of the final op should equal the ultimate root hash being verified against..</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="proofop">ProofOp</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>type</td>
+          <td>string</td>
+          <td>Type of Merkle proof and how it’s encoded.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>key</td>
+          <td>bytes</td>
+          <td>Key in the Merkle tree that this proof is for.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>data</td>
+          <td>bytes</td>
+          <td>Encoded Merkle proof for the key.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="snapshot">Snapshot</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>height</td>
+          <td>uint64</td>
+          <td>The height at which the snapshot was taken (after commit).</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>format</td>
+          <td>uint32</td>
+          <td>An application-specific snapshot format, allowing applications to version their snapshot data format and make backwards-incompatible changes. CometBFT does not interpret this.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>chunks</td>
+          <td>uint32</td>
+          <td>The number of chunks in the snapshot. Must be at least 1 (even if empty).</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>hash</td>
+          <td>bytes</td>
+          <td>An arbitrary snapshot hash. Must be equal only for identical snapshots across nodes. CometBFT does not interpret the hash, it only compares them.</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>metadata</td>
+          <td>bytes</td>
+          <td>Arbitrary application metadata, for example chunk hashes or other verification data.</td>
+          <td>5</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Used for state sync snapshots, see the <a href="/v0.37/spec/p2p/messages/state-sync/">state sync section</a> for details.</li>
+      <li>A snapshot is considered identical across nodes only if <em>all</em> fields are equal (including
+  <code class="language-plaintext highlighter-rouge">Metadata</code>). Chunks may be retrieved from all nodes that have the same snapshot.</li>
+      <li>When sent across the network, a snapshot message can be at most 4 MB.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="data-types-introduced-or-modified-in-abci">Data types introduced or modified in ABCI++</h2>
+
+<h3 id="voteinfo">VoteInfo</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>validator</td>
+          <td><a href="#validator">Validator</a></td>
+          <td>The validator that sent the vote.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>signed_last_block</td>
+          <td>bool</td>
+          <td>Indicates whether or not the validator signed the last block.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Indicates whether a validator signed the last block, allowing for rewards based on validator availability.</li>
+      <li>This information is typically extracted from a proposed or decided block.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="extendedvoteinfo">ExtendedVoteInfo</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>validator</td>
+          <td><a href="#validator">Validator</a></td>
+          <td>The validator that sent the vote.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>signed_last_block</td>
+          <td>bool</td>
+          <td>Indicates whether or not the validator signed the last block.</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>vote_extension</td>
+          <td>bytes</td>
+          <td>Reserved for future use.</td>
+          <td>3</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p><strong>Usage</strong>:</p>
+    <ul>
+      <li>Indicates whether a validator signed the last block, allowing for rewards based on validator availability.</li>
+      <li>This information is extracted from CometBFT’s data structures in the local process.</li>
+      <li><code class="language-plaintext highlighter-rouge">vote_extension</code> is reserved for future use when vote extensions are added. Currently, this field is always set to <code class="language-plaintext highlighter-rouge">nil</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="commitinfo">CommitInfo</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>round</td>
+          <td>int32</td>
+          <td>Commit round. Reflects the round at which the block proposer decided in the previous height.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>votes</td>
+          <td>repeated <a href="#voteinfo">VoteInfo</a></td>
+          <td>List of validators’ addresses in the last validator set with their voting information.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="extendedcommitinfo">ExtendedCommitInfo</h3>
+
+<ul>
+  <li>
+    <p><strong>Fields</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Field Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>round</td>
+          <td>int32</td>
+          <td>Commit round. Reflects the round at which the block proposer decided in the previous height.</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>votes</td>
+          <td>repeated <a href="#extendedvoteinfo">ExtendedVoteInfo</a></td>
+          <td>List of validators’ addresses in the last validator set with their voting information, including vote extensions.</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<!-- 
+### ExecTxResult
+
+* **Fields**:
+
+    | Name       | Type                                                        | Description                                                           | Field Number |
+    |------------|-------------------------------------------------------------|-----------------------------------------------------------------------|--------------|
+    | code       | uint32                                                      | Response code.                                                        | 1            |
+    | data       | bytes                                                       | Result bytes, if any.                                                 | 2            |
+    | log        | string                                                      | The output of the application's logger. **May be non-deterministic.** | 3            |
+    | info       | string                                                      | Additional information. **May be non-deterministic.**                 | 4            |
+    | gas_wanted | int64                                                       | Amount of gas requested for transaction.                              | 5            |
+    | gas_used   | int64                                                       | Amount of gas consumed by transaction.                                | 6            |
+    | events     | repeated [Event](/v0.37/spec/abci/abci++_basic_concepts/#events)           | Type & Key-Value events for indexing transactions (e.g. by account).  | 7            |
+    | codespace  | string                                                      | Namespace for the `code`.                                             | 8            |
+
+-->
+
+<h3 id="proposalstatus">ProposalStatus</h3>
+
+<div class="language-proto highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="n">ProposalStatus</span> <span class="p">{</span>
+  <span class="na">UNKNOWN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Unknown status. Returning this from the application is always an error. </span>
+  <span class="na">ACCEPT</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Status that signals that the application finds the proposal valid.</span>
+  <span class="na">REJECT</span>  <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Status that signals that the application finds the proposal invalid.</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Usage</strong>:
+    <ul>
+      <li>Used within the <a href="#processproposal">ProcessProposal</a> response.
+        <ul>
+          <li>If <code class="language-plaintext highlighter-rouge">Status</code> is <code class="language-plaintext highlighter-rouge">UNKNOWN</code>, a problem happened in the Application. CometBFT will assume the application is faulty and crash.</li>
+          <li>If <code class="language-plaintext highlighter-rouge">Status</code> is <code class="language-plaintext highlighter-rouge">ACCEPT</code>, the consensus algorithm accepts the proposal and will issue a Prevote message for it.</li>
+          <li>If <code class="language-plaintext highlighter-rouge">Status</code> is <code class="language-plaintext highlighter-rouge">REJECT</code>, the consensus algorithm rejects the proposal and will issue a Prevote for <code class="language-plaintext highlighter-rouge">nil</code> instead.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<!-- 
+### VerifyStatus
+
+```proto
+enum VerifyStatus {
+  UNKNOWN = 0; // Unknown status. Returning this from the application is always an error.
+  ACCEPT  = 1; // Status that signals that the application finds the vote extension valid.
+  REJECT  = 2; // Status that signals that the application finds the vote extension invalid.
+}
+```
+
+* **Usage**:
+    * Used within the [VerifyVoteExtension](#verifyvoteextension) response.
+        * If `Status` is `UNKNOWN`, a problem happened in the Application. CometBFT will assume the application is faulty and crash.
+        * If `Status` is `ACCEPT`, the consensus algorithm will accept the vote as valid.
+        * If `Status` is `REJECT`, the consensus algorithm will reject the vote as invalid.
+
+
+### CanonicalVoteExtension
+
+>**TODO**: This protobuf message definition is not part of the ABCI++ interface, but rather belongs to the
+> Precommit message which is broadcast via P2P. So it is to be moved to the relevant section of the spec.
+
+* **Fields**:
+
+    | Name      | Type   | Description                                                                                | Field Number |
+    |-----------|--------|--------------------------------------------------------------------------------------------|--------------|
+    | extension | bytes  | Vote extension provided by the Application.                                                | 1            |
+    | height    | int64  | Height in which the extension was provided.                                                | 2            |
+    | round     | int32  | Round in which the extension was provided.                                                 | 3            |
+    | chain_id  | string | ID of the blockchain running consensus.                                                    | 4            |
+    | address   | bytes  | [Address](/v0.37/spec/core/data_structures.md#address) of the validator that provided the extension | 5            |
+
+* **Usage**:
+    * CometBFT is to sign the whole data structure and attach it to a Precommit message
+    * Upon reception, CometBFT validates the sender's signature and sanity-checks the values of `height`, `round`, and `chain_id`.
+      Then it sends `extension` to the Application via `RequestVerifyVoteExtension` for verification.
+
+
+-->
+
+:ET
