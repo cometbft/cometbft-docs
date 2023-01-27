@@ -21,7 +21,7 @@ function handleVersionMenuChange(changeEvent) {
   const selectedVersion =
     selectElement.options[selectElement.selectedIndex].value;
 
-  window.location.href = `/${selectedVersion}/README`;
+  window.location.href = `/${selectedVersion}`;
 }
 
 function initNavigationTree() {

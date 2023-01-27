@@ -10,19 +10,18 @@
 <ul class="TreeMenu-items">
   {% for matchingPage in matchingPages %}
     {%
-      assign pathWithoutReadme = matchingPage.id
-        | replace: '/readme', ''
-        | replace: '/README', ''
+      assign pathWithoutIndex = matchingPage.id
+        | replace: '/index', ''
     %}
 
-    {% if pathWithoutReadme == include.path %}
+    {% if pathWithoutIndex == include.path %}
       {% continue %}
     {% endif %}
 
     {%
       assign numChildren = site.pages
         | where_exp: "page", "
-          page.id contains pathWithoutReadme
+          page.id contains pathWithoutIndex
         "
         | size
     %}
@@ -30,7 +29,7 @@
     {% assign depth = matchingPage.id | split: '/' | size %}
 
     {%
-      assign depthWithoutReadme = pathWithoutReadme
+      assign depthWithoutReadme = pathWithoutIndex
         | split: '/'
         | size
     %}
@@ -43,14 +42,14 @@
     %}
 
     {% if depth == targetDepth or depthWithoutReadme == targetDepth and numChildren == 1 %}
-      {% assign pathToMatch = pathWithoutReadme | append: '/' %}
+      {% assign pathToMatch = pathWithoutIndex | append: '/' %}
       <li
         class="
           TreeMenu-item
           {% if page.url contains pathToMatch %}is-active{% endif %}
         "
       >
-        <a class="TreeMenu-button" href="{{ matchingPage.url }}">
+        <a class="TreeMenu-button" href="{{ pathWithoutIndex }}">
           {% if matchingPage.parent.title %}
             {{ matchingPage.parent.title }}
           {% else %}
@@ -64,12 +63,12 @@
           TreeMenu-item
           js-tree-menu-parent-item
           has-children
-          {% if page.url contains pathWithoutReadme %}is-active{% endif %}
+          {% if page.url contains pathWithoutIndex %}is-active{% endif %}
         "
       >
         <a
           class="TreeMenu-button js-tree-menu-toggle-button"
-          href="{{ matchingPage.url }}"
+          href="{{ pathWithoutIndex }}"
         >
           {% if matchingPage.parent.title %}
             {{ matchingPage.parent.title }}
@@ -78,7 +77,7 @@
           {% endif %}
         </a>
 
-        {% include nav.html path=pathWithoutReadme %}
+        {% include nav.html path=pathWithoutIndex %}
       </li>
     {% endif %}
   {% endfor %}

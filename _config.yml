@@ -29,6 +29,7 @@ baseurl: '' # the subpath of your site, e.g. /blog
 url: '' # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: informalinc
 github_username: cometbft
+show_dir_listing: false
 
 defaults:
   - scope:
@@ -40,16 +41,12 @@ defaults:
 collections:
   pages:
     output: true
-    permalink: /:path/
+    permalink: /:path
 
 permalink: pretty
 
-readme_index:
-  enabled: true
-  remove_originals: true
-
 relative_links:
-  enabled: true
+  enabled: false
   collections: true
 
 titles_from_headings:
@@ -59,7 +56,6 @@ titles_from_headings:
 
 # Build settings
 plugins:
-  - jekyll-feed
   - jekyll-titles-from-headings
   - jekyll-relative-links
 # Exclude from processing.
