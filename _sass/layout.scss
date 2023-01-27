@@ -13,18 +13,18 @@
   display: grid;
   grid-template-areas:
     'SiteHeader'
-    'PrimaryNavigation'
-    'TableOfContents'
+    'LeftNav'
+    'RightNav'
     'PageContent'
     'SiteFooter';
   margin: 0 auto;
 
-  @include rowGap(loose, false);
+  @include gap(loose, false);
 
   @include for-breakpoint(tabletsOrLarger) {
     grid-template-areas:
       'SiteHeader SiteHeader SiteHeader'
-      'PrimaryNavigation PageContent TableOfContents'
+      'LeftNav PageContent RightNav'
       'SiteFooter SiteFooter SiteFooter';
     grid-template-columns: 0.75fr minmax(300px, 2fr) 0.75fr;
   }
@@ -108,9 +108,28 @@
   font-weight: bold;
 }
 
-.SiteHeader-logoSubtext {
+.VersionMenu {
   color: var(--color--text--faded);
   @include fontSize(small);
+}
+
+.LeftNav {
+  grid-area: LeftNav;
+}
+
+.RightNav {
+  grid-area: RightNav;
+}
+
+.LeftNav-content,
+.RightNav-content {
+  max-height: calc(100vh - (var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px));
+  overflow-y: auto;
+  overflow-x: visible;
+  position: sticky;
+  top: calc(var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px);
+  @include paddingBottom(normal);
+  @include paddingX(normal);
 }
 
 .SiteFooter {
@@ -119,29 +138,6 @@
   @include fontSize(small);
   @include justifyContent(center);
   @include paddingY(tight);
-}
-
-.PrimaryNavigation-items,
-.TableOfContents-content {
-  max-height: calc(100vh - (var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px));
-  overflow-y: auto;
-  overflow-x: visible;
-  position: sticky;
-  top: calc(var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px);
-  @include paddingBottom(normal);
-}
-
-.PrimaryNavigation {
-  @include paddingLeft(normal);
-  @include paddingRight(loose);
-}
-
-.PrimaryNavigation-items {
-  @include paddingLeft(normal);
-}
-
-.TableOfContents {
-  @include paddingX(loose);
 }
 
 .PageContent {
@@ -154,12 +150,4 @@
     padding-left: 0;
     padding-right: 0;
   }
-}
-
-.PrimaryNavigation {
-  grid-area: PrimaryNavigation;
-}
-
-.TableOfContents {
-  grid-area: TableOfContents;
 }

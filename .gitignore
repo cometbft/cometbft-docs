@@ -6,3 +6,5 @@ docs
 spec
 build
 cometbft
+.jekyll-cache
+
