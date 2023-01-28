@@ -32,6 +32,9 @@ build: versions-data
 # Creates _data/versions.yml, which is built from the VERSIONS file, in order
 # to provide information about versions to Jekyll during the site build
 # process. This assists in constructing the dropdown version selector menu.
+#
+# Also creates _data/default_version.yml, which simply contains the output path
+# of the last version listed in the VERSIONS file.
 versions-data:
 	@mkdir -p _data
 	@rm -f _data/versions.yml _data/default_version.yml
