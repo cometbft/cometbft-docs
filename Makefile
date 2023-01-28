@@ -2,31 +2,33 @@
 ###                           Documentation                                 ###
 ###############################################################################
 
-# Clone repository branches and copy docs and spec folders
+# Clone repository branches and copy docs and spec folders into our _pages
+# collection.
 fetch: clean
-	@echo "Fetching documentation from CometBFT repository"
-	@while read -r branch output_path visible; do \
-		echo "Clone docs for version $${branch}"; \
-		mkdir -pv build/$${branch} ; \
-		cd build/$${branch} ; \
-		git clone -b $${branch} https://github.com/cometbft/cometbft.git ; \
-		cd ../.. ; \
-		mkdir -p _pages/$${output_path}/spec ; \
-		cp -r build/$${branch}/cometbft/docs/* _pages/$${output_path} ; \
-		cp -r build/$${branch}/cometbft/spec/* _pages/$${output_path}/spec ; \
-		echo "Setting README.md from $${branch} as the root landing page" ; \
-		cp _pages/$${output_path}/README.md _pages/README.md ; \
-		echo "" ; \
-	done < VERSIONS ; \
-	find _pages -type f -iname README.md | xargs -I % sh -c 'cp -v % $$(dirname %)/index.md'
+	@echo "---> Fetching documentation from CometBFT repository"
+	@mkdir -p build ; \
+		cd build ; \
+		git clone https://github.com/cometbft/cometbft.git ; \
+		cd .. ; \
+		while read -r branch output_path visible; do \
+			echo "-----> Checking out $${branch}" ; \
+			cd build/cometbft ; \
+			git checkout $${branch} ; \
+			cd ../.. ; \
+			mkdir -pv _pages/$${output_path}/spec ; \
+			cp -r build/cometbft/docs/* _pages/$${output_path} ; \
+			cp -r build/cometbft/spec/* _pages/$${output_path}/spec ; \
+			find _pages/$${output_path} -type f -iname README.md | xargs -I % sh -c 'cp -v % $$(dirname %)/index.md' ; \
+			echo "" ; \
+		done < VERSIONS
 .PHONY: fetch
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
 build: versions-data
-	@echo "Building documentation"
+	@echo "---> Building documentation"
 	@rm -rf _site
 	@docker run -it --rm --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
-		/bin/bash -c 'cd /srv/jekyll && bundle install && bundle exec jekyll build --future -V'
+		/bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V'
 .PHONY: build
 
 # Creates _data/versions.yml, which is built from the VERSIONS file, in order
@@ -46,13 +48,13 @@ versions-data:
 	done < VERSIONS
 .PHONY: versions-data
 
-# Build and serve the built site (_site folder)
+# Serve the built site from the _site folder
 serve:
-	@echo "Running documentation site at http://localhost:8088"
+	@echo "---> Running documentation site at http://localhost:8088"
 	@go run http_server.go
 .PHONY: serve
 
 clean:
-	@echo "Deleting all previous build artifacts"
-	@rm -Rf ./build _pages _site .jekyll-cache _data/versions.yml _data/default_version.yml ;
+	@echo "---> Deleting all previous build artifacts"
+	@rm -rf ./build _pages _site .jekyll-cache _data/versions.yml _data/default_version.yml
 .PHONY: clean
