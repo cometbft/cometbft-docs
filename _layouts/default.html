@@ -1,16 +1,9 @@
-{%- capture allPageVersionNumbers -%}
-  {%- for page in site.pages -%}
-    {{- page.id | split: '/' | slice: 1 -}}
-    {%- unless forloop.last -%},{%- endunless -%}
-  {%- endfor -%}
-{%- endcapture -%}
-
-{% assign versions = allPageVersionNumbers | split: ',' | uniq %}
-
-{% assign urlPieces = page.url | replace_first: "/", "" | split: "/" %}
-
-{% assign currentVersion = urlPieces[0] | default: 'v0.34' %}
-
+{%- assign urlParts = page.url | replace_first: "/", "" | split: "/" -%}
+{%- if urlParts[0] == "index" -%}
+  {%- assign currentVersion = site.data.default_version.output_path -%}
+{%- else -%}
+  {%- assign currentVersion = urlParts[0] -%}
+{%- endif -%}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,7 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/assets/css/styles.css" />
-    <title>{{ site.title }} - {{ page.title }}</title>
+    <title>{{ site.title }} - {{ page.title }} - {{ currentVersion }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Glegoo:wght@400;700&family=Inter:wght@300;700&display=swap" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/401fb1e734.js" crossorigin="anonymous"></script>
     <script src="/assets/js/navigation.js"></script>
@@ -36,13 +29,13 @@
 
             <select class="VersionMenu js-version-menu" name="version">
               <optgroup label="Versions">
-                {% for version in versions %}
-                  {% if version != "main" %}
+                {% for version in site.data.versions %}
+                  {% if version.visible %}
                     <option
-                      value="{{ version }}"
-                      {% if version == currentVersion %} selected{% endif %}
+                      value="{{ version.output_path }}"
+                      {% if version.output_path == currentVersion %} selected{% endif %}
                     >
-                      {{ version }}
+                      {{ version.output_path }}
                     </option>
                   {% endif %}
                 {% endfor %}
