@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="0; url=/{{ site.data.default_version.output_path }}/" />
+
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <title>{{ site.title }} - {{ page.title }} - {{ currentVersion }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Glegoo:wght@400;700&family=Inter:wght@300;700&display=swap" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/401fb1e734.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+      window.location.href = "/{{ site.data.default_version.output_path }}/";
+    </script>
+  </head>
+  <body>
+    <div class="GridLayout">
+      <header class="SiteHeader js-sticky-site-header">
+        <div class="SiteHeader-content">
+          <div class="SiteHeader-logo">
+            <h1 class="SiteHeader-logoText">
+              <a href="/">CometBFT</a>
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <div class="PageContent">
+        If you are not automatically redirected to the latest version's
+        documentation, please click <a href="/{{ site.data.default_version.output_path }}/">here</a>.
+      </div>
+
+      <footer class="SiteFooter">
+        <div>
+          &copy; {{ "now" | date: "%Y" }} CometBFT
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

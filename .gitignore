@@ -1,4 +1,13 @@
-_pages
-_site
 .DS_Store
+.idea
+
+# Jekyll-related
+_pages
 .jekyll-cache
+.jekyll-metadata
+
+# Build artifacts
+build
+_site
+_data/versions.yml
+_data/default_version.yml
