@@ -19,16 +19,17 @@
 # in the templates via {{ site.myvariable }}.
 
 title: CometBFT Documentation
-email: info@informal.systems
+email: hello@informal.systems
 description: >- # this means to ignore newlines until "baseurl:"
-  Tendermint Core is a blockchain application platform; it provides the
-  equivalent of a web-server, database, and supporting libraries for blockchain
-  applications written in any programming language. Like a web-server serving
-  web applications, Tendermint serves blockchain applications.
+  CometBFT is a blockchain application platform; it provides the equivalent of
+  a web-server, database, and supporting libraries for blockchain applications
+  written in any programming language. Like a web-server serving web
+  applications, Tendermint serves blockchain applications.
 baseurl: '' # the subpath of your site, e.g. /blog
 url: '' # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: informalinc
 github_username: cometbft
+show_dir_listing: false
 
 defaults:
   - scope:
@@ -36,6 +37,10 @@ defaults:
     values:
       layout: 'default'
       order: 1
+  - scope:
+      path: '**/index.md'
+    values:
+      permalink: /:path
 
 collections:
   pages:
@@ -44,12 +49,8 @@ collections:
 
 permalink: pretty
 
-readme_index:
-  enabled: true
-  remove_originals: true
-
 relative_links:
-  enabled: true
+  enabled: false
   collections: true
 
 titles_from_headings:
@@ -59,7 +60,6 @@ titles_from_headings:
 
 # Build settings
 plugins:
-  - jekyll-feed
   - jekyll-titles-from-headings
   - jekyll-relative-links
 # Exclude from processing.

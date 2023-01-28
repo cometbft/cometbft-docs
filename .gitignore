@@ -1,5 +1,7 @@
 _pages
 _site
+_data/versions.yml
+_data/default_version.yml
 .DS_Store
 .idea
 docs
@@ -7,4 +9,4 @@ spec
 build
 cometbft
 .jekyll-cache
-
+.jekyll-metadata

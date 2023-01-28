@@ -132,9 +132,9 @@
   }
 
   ul li::before {
-    content: '\f0da';
+    content: '\e122';
     font-family: 'Font Awesome 6 Pro';
-    font-weight: 900;
+    font-weight: 400;
     position: absolute;
     right: calc(100% + var(--whiteSpace--tight));
     top: 0;

@@ -40,8 +40,6 @@ GEM
       rouge (~> 3.0)
       safe_yaml (~> 1.0)
       terminal-table (~> 2.0)
-    jekyll-feed (0.15.1)
-      jekyll (>= 3.7, < 5.0)
     jekyll-relative-links (0.6.1)
       jekyll (>= 3.3, < 5.0)
     jekyll-sass-converter (2.2.0)
@@ -92,7 +90,6 @@ DEPENDENCIES
   html-proofer
   http_parser.rb (~> 0.6.0)
   jekyll (~> 4.2.2)
-  jekyll-feed (~> 0.12)
   jekyll-relative-links
   jekyll-sass-converter
   jekyll-titles-from-headings
