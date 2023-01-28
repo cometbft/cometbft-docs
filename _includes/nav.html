@@ -1,4 +1,9 @@
 {%
+  assign pageUrlWithoutIndex = page.url
+    | replace: '/index', ''
+%}
+
+{%
   assign matchingPages = site.pages
     | where_exp: "page", "
       page.id contains include.path
@@ -42,11 +47,10 @@
     %}
 
     {% if depth == targetDepth or depthWithoutReadme == targetDepth and numChildren == 1 %}
-      {% assign pathToMatch = pathWithoutIndex | append: '/' %}
       <li
         class="
           TreeMenu-item
-          {% if page.url contains pathToMatch %}is-active{% endif %}
+          {% if pageUrlWithoutIndex == pathWithoutIndex %}is-active{% endif %}
         "
       >
         <a class="TreeMenu-button" href="{{ pathWithoutIndex }}">
