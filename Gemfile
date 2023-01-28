@@ -37,3 +37,5 @@ gem 'html-proofer'
 gem 'jekyll-sass-converter'
 
 gem 'jekyll-relative-links'
+
+gem 'jekyll-regex-replace'
