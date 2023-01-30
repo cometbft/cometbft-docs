@@ -9,7 +9,7 @@ layout: false
     {
       "title": "{{ page.title | strip_html | url_encode }}",
       "url": "{{ site.baseurl }}{{ page.url | replace: '/index', '' }}",
-      "content": "{{ page.content | strip_html | replace: newline, " "  | downcase | url_encode }}",
+      "content": "{{ page.content | markdownify | strip_html | replace: newline, " "  | downcase | url_encode }}",
       "version": "{{ page.id | split: '/' | slice: 1 }}"
     }{% unless forloop.last %},{% endunless %}
   {% endfor %}
