@@ -45,7 +45,7 @@ defaults:
 collections:
   pages:
     output: true
-    permalink: /:path/
+    permalink: /:path
 
 permalink: pretty
 
@@ -63,7 +63,6 @@ plugins:
   - jekyll-titles-from-headings
   - jekyll-relative-links
   - jekyll-regex-replace
-
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to

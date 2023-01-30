@@ -32,10 +32,10 @@ gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
 gem 'jekyll-titles-from-headings'
 
-gem 'html-proofer'
-
 gem 'jekyll-sass-converter'
 
 gem 'jekyll-relative-links'
 
 gem 'jekyll-regex-replace'
+
+gem "webrick", "~> 1.8"

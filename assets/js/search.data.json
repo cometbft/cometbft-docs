@@ -8,7 +8,7 @@ layout: false
   {% for page in site.pages %}
     {
       "title": "{{ page.title | strip_html | url_encode }}",
-      "url": "{{ site.baseurl }}{{ page.url }}",
+      "url": "{{ site.baseurl }}{{ page.url | replace: '/index', '' }}",
       "content": "{{ page.content | strip_html | replace: newline, " "  | downcase | url_encode | replace: '+', ' ' }}",
       "version": "{{ page.id | split: '/' | slice: 1 }}"
     }{% unless forloop.last %},{% endunless %}
