@@ -1,7 +1,11 @@
-{%
-  assign pageUrlWithoutIndex = page.url
-    | replace: '/index', ''
-%}
+{% assign lastSixCharsOfPageUrl = page.url | slice: -6, 6 %}
+
+{% if lastSixCharsOfPageUrl == '/index' %}
+  {% assign lengthOfPageUrlWithoutIndex = page.url | size | minus: 6 %}
+  {% assign pageUrlWithoutIndex = page.url | slice: 0, lengthOfPageUrlWithoutIndex %}
+{% else %}
+  {% assign pageUrlWithoutIndex = page.url %}
+{% endif %}
 
 {%
   assign matchingPages = site.pages
@@ -14,10 +18,14 @@
 
 <ul class="TreeMenu-items">
   {% for matchingPage in matchingPages %}
-    {%
-      assign pathWithoutIndex = matchingPage.id
-        | replace: '/index', ''
-    %}
+    {% assign lastSixCharsOfPath = matchingPage.id | slice: -6, 6 %}
+
+    {% if lastSixCharsOfPath == '/index' %}
+      {% assign lengthOfPathWithoutIndex = matchingPage.id | size | minus: 6 %}
+      {% assign pathWithoutIndex = matchingPage.id | slice: 0, lengthOfPathWithoutIndex %}
+    {% else %}
+      {% assign pathWithoutIndex = matchingPage.id %}
+    {% endif %}
 
     {% if pathWithoutIndex == include.path %}
       {% continue %}
