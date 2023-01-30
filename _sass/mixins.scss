@@ -104,7 +104,7 @@ $breakpoints: (
   'phones': 'max-width: 480px',
   'tabletsOrLarger': 'min-width: 768px',
   'desktopsOrLarger': 'min-width: 1024px',
-  'bigDesktopsOrLarger': 'min-width: 1200px',
+  'bigDesktopsOrLarger': 'min-width: 1400px',
 );
 
 @mixin for-breakpoint($breakpointName) {

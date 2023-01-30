@@ -30,7 +30,7 @@
   }
 
   @include for-breakpoint(desktopsOrLarger) {
-    max-width: 960px;
+    max-width: 90vw;
   }
 
   @include for-breakpoint(bigDesktopsOrLarger) {
@@ -129,7 +129,11 @@
   position: sticky;
   top: calc(var(--whiteSpace--normal) * 2 + var(--whiteSpace--loose) + var(--lineHeight--large) + 1px);
   @include paddingBottom(normal);
-  @include paddingX(normal);
+  @include paddingX(loose);
+
+  @include for-breakpoint(tabletsOrLarger) {
+    @include paddingX(normal);
+  }
 }
 
 .SiteFooter {
