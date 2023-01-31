@@ -1,6 +1,7 @@
 .TreeMenu-items {
-  @include rowGap(normal);
+  @include fontSize(small);
   @include paddingLeft(normal);
+  @include rowGap(normal);
 }
 
 .TreeMenu-item {
