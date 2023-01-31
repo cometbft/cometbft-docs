@@ -27,20 +27,22 @@
               <a href="/{{ currentVersion }}/">CometBFT</a>
             </h1>
 
-            <select class="VersionMenu js-version-menu" name="version">
-              <optgroup label="Versions">
-                {% for version in site.data.versions %}
-                  {% if version.visible %}
-                    <option
-                      value="{{ version.output_path }}"
-                      {% if version.output_path == currentVersion %} selected{% endif %}
-                    >
-                      {{ version.output_path }}
-                    </option>
-                  {% endif %}
-                {% endfor %}
-              </optgroup>
-            </select>
+            <label class="VersionMenu-wrapper">
+              <select class="VersionMenu js-version-menu" name="version">
+                <optgroup label="Versions">
+                  {% for version in site.data.versions %}
+                    {% if version.visible %}
+                      <option
+                        value="{{ version.output_path }}"
+                        {% if version.output_path == currentVersion %} selected{% endif %}
+                      >
+                        {{ version.output_path }}
+                      </option>
+                    {% endif %}
+                  {% endfor %}
+                </optgroup>
+              </select>
+            </label>
           </div>
 
           <div class="SiteSearch">

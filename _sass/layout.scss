@@ -95,7 +95,7 @@
 }
 
 .SiteHeader-logo {
-  align-items: baseline;
+  align-items: center;
   @include rowGap(xTight);
   @include fontSize(large);
 
@@ -108,9 +108,31 @@
   font-weight: bold;
 }
 
-.VersionMenu {
-  color: var(--color--text--faded);
+.VersionMenu-wrapper {
+  border: 1px solid var(--color--border);
+  border-radius: 1000px;
+  cursor: pointer;
+  position: relative;
   @include fontSize(small);
+  @include paddingX(tight);
+  @include paddingY(xTight);
+
+  &::after {
+    content: '\f107';
+    font-family: 'Font Awesome 6 Pro';
+    pointer-events: none;
+    position: absolute;
+    right: var(--whiteSpace--tight);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+.VersionMenu {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: transparent;
+  cursor: pointer;
 }
 
 .LeftNav {
