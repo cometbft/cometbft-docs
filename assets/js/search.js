@@ -1,5 +1,61 @@
 window.addEventListener('DOMContentLoaded', initSiteSearch);
 
+function getMatchingPages(pages, query) {
+  const keywords = query.toLowerCase().split(' ');
+
+  const matchingPages = [];
+
+  pages.forEach((page) => {
+    const lowerCaseTitle = page.title.toLowerCase();
+
+    const augmentedPage = {
+      ...page,
+      matchScore: 0,
+      numMatchesInContent: 0,
+      snippet: null,
+    };
+
+    keywords.forEach((keyword) => {
+      if (lowerCaseTitle.includes(keyword)) {
+        augmentedPage.matchScore += 10;
+
+        augmentedPage.title = highlightSubString(page.title, keyword);
+      }
+
+      const matchesInPageContent = Array.from(
+        page.content.matchAll(new RegExp(keyword, 'ig'))
+      );
+
+      if (matchesInPageContent.length) {
+        augmentedPage.matchScore += matchesInPageContent.length;
+        augmentedPage.numMatchesInContent = matchesInPageContent.length;
+
+        if (!augmentedPage.snippet) {
+          const match = matchesInPageContent[0];
+
+          const snippet = page.content.slice(
+            Math.max(0, match.index - 25),
+            match.index + keyword.length + 25
+          );
+
+          augmentedPage.snippet = `...${highlightSubString(
+            snippet,
+            keyword
+          )}...`;
+        }
+      }
+    });
+
+    if (augmentedPage.matchScore > 0) {
+      matchingPages.push(augmentedPage);
+    }
+  });
+
+  matchingPages.sort((a, b) => a.matchScore - b.matchScore).reverse();
+
+  return matchingPages;
+}
+
 function handleFirstInputFocus(focusEvent) {
   const { inputElement } = window.appState.refs;
 
@@ -61,11 +117,11 @@ function loadSearchData() {
 function render() {
   const { inputElement, searchResultsModal } = window.appState.refs;
 
-  const keywords = inputElement.value.toLowerCase().split(' ');
+  const query = inputElement.value.trim();
 
   searchResultsModal.innerHTML = ``;
 
-  if (!keywords.length) {
+  if (!query.length) {
     return;
   }
 
@@ -74,59 +130,11 @@ function render() {
   const currentVersion =
     versionMenuElement.options[versionMenuElement.selectedIndex].value;
 
-  const matchingPages = [];
-
   const pagesForCurrentVersion = window.appState.pages.filter(
     (page) => page.version === currentVersion
   );
 
-  pagesForCurrentVersion.forEach((page) => {
-    const lowerCaseTitle = page.title.toLowerCase();
-
-    const augmentedPage = {
-      ...page,
-      matchScore: 0,
-      numMatchesInContent: 0,
-      snippet: null,
-    };
-
-    keywords.forEach((keyword) => {
-      if (lowerCaseTitle.includes(keyword)) {
-        augmentedPage.matchScore += 10;
-
-        augmentedPage.title = highlightSubString(page.title, keyword);
-      }
-
-      const matchesInPageContent = Array.from(
-        page.content.matchAll(new RegExp(keyword, 'ig'))
-      );
-
-      if (matchesInPageContent.length) {
-        augmentedPage.matchScore += matchesInPageContent.length;
-        augmentedPage.numMatchesInContent = matchesInPageContent.length;
-
-        if (!augmentedPage.snippet) {
-          const match = matchesInPageContent[0];
-
-          const snippet = page.content.slice(
-            Math.max(0, match.index - 25),
-            match.index + keyword.length + 25
-          );
-
-          augmentedPage.snippet = `...${highlightSubString(
-            snippet,
-            keyword
-          )}...`;
-        }
-      }
-    });
-
-    if (augmentedPage.matchScore > 0) {
-      matchingPages.push(augmentedPage);
-    }
-  });
-
-  matchingPages.sort((a, b) => a.matchScore - b.matchScore).reverse();
+  const matchingPages = getMatchingPages(pagesForCurrentVersion, query);
 
   const renderedResults = matchingPages
     .map((result) => {
@@ -180,6 +188,6 @@ function sanitizeSearchData(page) {
   return {
     ...page,
     title: decodeURIComponent(page.title).replace(/\+/g, ' '),
-    content: decodeURIComponent(page.content).replace(/\+/g, ' '),
+    content: decodeURIComponent(page.content).replaceAll('+', ' '),
   };
 }
