@@ -16,12 +16,15 @@ function getMatchingPages(pages, query) {
     };
 
     keywords.forEach((keyword) => {
+<<<<<<< HEAD
       const keywordOnly = new RegExp(`\\b${keyword}\\b`, 'i');
 
       if (keywordOnly.exec(page.keywords)) {
         augmentedPage.matchScore += 100;
       }
 
+=======
+>>>>>>> f2d695b (Clean up search.js; fix search data encoding (#14))
       if (lowerCaseTitle.includes(keyword)) {
         augmentedPage.matchScore += 10;
 
