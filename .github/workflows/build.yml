@@ -1,0 +1,38 @@
+name: Build
+# This workflow runs periodically builds (daily) to deploy the
+# CometBFT documentation website to Netlify
+on:
+  push:
+    branches:
+      - andy/deploy-build
+
+jobs:
+  jekyll:
+    runs-on: ubuntu-latest
+    steps:
+      # Use GitHub Actions' cache to shorten build times and decrease load on servers
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      # Build the Jekyll site
+      - uses: helaili/jekyll-action@v2
+        with:
+          build_only: true
+          build_dir: _site
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      # Deploy the _site folder to Netlify CometBFT documentation website
+      - uses: actions/checkout@v2
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v1.2
+        with:
+          publish-dir: '_site'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5
