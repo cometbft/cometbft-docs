@@ -7,21 +7,25 @@ on:
       - andy/deploy-build
 
 jobs:
-  build-and-deploy:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: jekyll/builder:stable
+      volumes:
+        - ${{ vars.GITHUB_WORKSPACE }}:/srv/jekyll
+    steps:
+      - name: Build website
+        run: /bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V'
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      # Build the Jekyll site
-      - uses: helaili/jekyll-action@v2
-        with:
-          build_only: true
-          jekyll_src: ${{ vars.GITHUB_WORKSPACE }}
-          gem_src: ${{ vars.GITHUB_WORKSPACE }}
       # Deploy the _site folder to Netlify CometBFT documentation website
       - uses: actions/checkout@v2
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
-          publish-dir: '_site'
+          publish-dir: ${{ vars.GITHUB_WORKSPACE }}/_site
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
