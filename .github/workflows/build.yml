@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: jekyll/jekyll:4
+      options: --user 1000
     steps:
       # Build the Jekyll website
       - name: Checkout site
