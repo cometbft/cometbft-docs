@@ -20,7 +20,7 @@ jobs:
           bundle install
       - name: Build website
         run: |
-          mkdir .jekyll-cache _site
+          mkdir -p .jekyll-cache/Jekyll _site
           bundle exec jekyll build --future -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
