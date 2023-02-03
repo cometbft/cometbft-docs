@@ -23,6 +23,7 @@ jobs:
           bundle install
       - name: Build website
         run: |
+          chmod a+wx .
           bundle exec jekyll build --disable-disk-cache -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
