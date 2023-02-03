@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: jekyll/jekyll:4
-      options: --user 1000
     steps:
       # Build the Jekyll website
       - name: Checkout site
@@ -21,7 +20,6 @@ jobs:
           bundle install
       - name: Build website
         run: |
-          mkdir -p _site
           bundle exec jekyll build --disable-disk-cache -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
