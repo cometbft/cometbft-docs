@@ -19,6 +19,7 @@ jobs:
           shell: bash
           options: -v ${{ github.workspace }}:/srv/jekyll
           run: |
+            mkdir .jekyll-cache _site
             cd /srv/jekyll/
             bundle install
             bundle exec jekyll build --future -V
