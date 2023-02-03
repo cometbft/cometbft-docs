@@ -7,25 +7,14 @@ on:
       - andy/deploy-build
 
 jobs:
-  jekyll:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # Use GitHub Actions' cache to shorten build times and decrease load on servers
-      - uses: actions/cache@v2
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
       # Build the Jekyll site
       - uses: helaili/jekyll-action@v2
         with:
           build_only: true
           build_dir: _site
-  deploy:
-    runs-on: ubuntu-18.04
-    steps:
       # Deploy the _site folder to Netlify CometBFT documentation website
       - uses: actions/checkout@v2
       - name: Deploy to Netlify
