@@ -14,6 +14,7 @@ jobs:
       volumes:
         - ${{ vars.GITHUB_WORKSPACE }}:/srv/jekyll
     steps:
+      - uses: actions/checkout@v2
       - name: Build website
         run: /bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V'
   deploy:
@@ -21,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Deploy the _site folder to Netlify CometBFT documentation website
-      - uses: actions/checkout@v2
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
