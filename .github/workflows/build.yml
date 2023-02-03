@@ -5,18 +5,22 @@ on:
   push:
     branches:
       - andy/deploy-build
-
 jobs:
   build:
+    name: Compile site assets
     runs-on: ubuntu-latest
-    container:
-      image: jekyll/builder:stable
-      volumes:
-        - ${{ vars.GITHUB_WORKSPACE }}:/srv/jekyll
     steps:
-      - uses: actions/checkout@v2
-      - name: Build website
-        run: /bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V'
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: jekyll/builder:stable
+          options: -v ${{ github.workspace }}:/srv/jekyll
+          run: |
+            cd /srv/jekyll/
+            bundle install
+            bundle exec jekyll build --future -V
   deploy:
     needs: build
     runs-on: ubuntu-latest
