@@ -7,7 +7,7 @@ on:
       - andy/deploy-build
 jobs:
   build:
-    name: Build Jekyll site
+    name: Build Jekyll site and Deploy to Netlify
     runs-on: ubuntu-latest
     container:
       image: jekyll/jekyll:4
@@ -21,7 +21,7 @@ jobs:
       - name: Build website
         run: |
           mkdir .jekyll-cache _site
-          jekyll build --future -V
+          bundle exec jekyll build --future -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
