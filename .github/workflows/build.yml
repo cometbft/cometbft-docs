@@ -7,22 +7,20 @@ on:
       - andy/deploy-build
 jobs:
   build:
-    name: Build the Jekyll website
+    name: Build Jekyll site
     runs-on: ubuntu-latest
+    container:
+      image: jekyll/jekyll:4
     steps:
-      - name: Check out the repo
+      - name: Checkout site
         uses: actions/checkout@v2
-      - name: Run the build process with Docker
-        uses: addnab/docker-run-action@v3
-        with:
-          image: jekyll/builder:stable
-          shell: bash
-          options: -v ${{ github.workspace }}:/srv/jekyll
-          run: |
-            mkdir .jekyll-cache _site
-            cd /srv/jekyll/
-            bundle install
-            bundle exec jekyll build --future -V
+      - name: Install dependencies
+        run: |
+          bundle install
+      - name: Build website
+        run: |
+          mkdir .jekyll-cache
+          jekyll build --future -V
   deploy:
     needs: build
     runs-on: ubuntu-latest
