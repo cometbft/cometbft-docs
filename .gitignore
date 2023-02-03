@@ -3,7 +3,7 @@
 vendor
 
 # Jekyll-related
-# _pages
+_pages
 .jekyll-cache
 .jekyll-metadata
 
