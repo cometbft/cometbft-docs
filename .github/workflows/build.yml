@@ -19,7 +19,7 @@ jobs:
           bundle install
       - name: Build website
         run: |
-          mkdir .jekyll-cache
+          mkdir .jekyll-cache _site
           jekyll build --future -V
   deploy:
     needs: build
