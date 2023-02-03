@@ -12,6 +12,7 @@ jobs:
     container:
       image: jekyll/jekyll:4
     steps:
+      # Build the Jekyll website
       - name: Checkout site
         uses: actions/checkout@v2
       - name: Install dependencies
@@ -21,10 +22,6 @@ jobs:
         run: |
           mkdir .jekyll-cache _site
           jekyll build --future -V
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
