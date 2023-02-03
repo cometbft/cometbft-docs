@@ -14,6 +14,8 @@ jobs:
       - uses: helaili/jekyll-action@v2
         with:
           build_only: true
+          jekyll_src: ${{ vars.GITHUB_WORKSPACE }}
+          gem_src: ${{ vars.GITHUB_WORKSPACE }}
       # Deploy the _site folder to Netlify CometBFT documentation website
       - uses: actions/checkout@v2
       - name: Deploy to Netlify
