@@ -20,8 +20,8 @@ jobs:
           bundle install
       - name: Build website
         run: |
-          mkdir -p .jekyll-cache/Jekyll _site
-          bundle exec jekyll build --future -V
+          mkdir -p _site
+          bundle exec jekyll build --disable-disk-cache -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
