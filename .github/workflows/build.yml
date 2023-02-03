@@ -16,11 +16,12 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: jekyll/builder:stable
+          shell: bash
           options: -v ${{ github.workspace }}:/srv/jekyll
           run: |
             cd /srv/jekyll/
-            sudo bundle install
-            sudo bundle exec jekyll build --future -V
+            bundle install
+            bundle exec jekyll build --future -V
   deploy:
     needs: build
     runs-on: ubuntu-latest
