@@ -10,7 +10,7 @@ jobs:
     name: Build Jekyll site and Deploy to Netlify
     runs-on: ubuntu-latest
     container:
-      image: jekyll/jekyll:4
+      image: jekyll/builder:stable
     steps:
       # Build the Jekyll website
       - name: Checkout site
