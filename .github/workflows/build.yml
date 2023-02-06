@@ -21,9 +21,15 @@ jobs:
       # Clone the cometbft repo
       - name: Fetch cometbft repo
         run: make fetch
+      # Install Jekyll dependencies
+      - name: Install dependencies
+        run: |
+          bundle install
       # Build the Jekyll website
       - name: Build website
-        run: make build
+        run: |
+          chmod a+wx .
+          bundle exec jekyll build --disable-disk-cache -V
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0.0
