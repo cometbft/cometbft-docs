@@ -18,9 +18,17 @@ jobs:
       # Build the Jekyll website
       - name: Checkout site
         uses: actions/checkout@v3
+      # Clone the cometbft repo
+      - name: Clone cometbft repo
+        uses: actions/checkout@v3
+        with:
+          repository: cometbft/cometbft
+          path: build
+      # Install Jekyll dependencies
       - name: Install dependencies
         run: |
           bundle install
+      # Build the Jekyll website
       - name: Build website
         run: |
           chmod a+wx .
