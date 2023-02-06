@@ -2,6 +2,7 @@ name: Build and Deploy to Netlify
 # This workflow runs periodically builds (daily) to deploy the
 # CometBFT documentation website to Netlify
 on:
+  pull_request:
   schedule:
     - cron: "0 0 * * *"
   push:
@@ -9,7 +10,7 @@ on:
       - andy/deploy-build
 jobs:
   build:
-    name: Build Jekyll site and Deploy to Netlify
+    name: Build and deploy to Netlify
     runs-on: ubuntu-latest
     container:
       image: jekyll/builder:stable
