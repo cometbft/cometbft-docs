@@ -21,6 +21,9 @@ jobs:
       # Clone the cometbft repo
       - name: Fetch cometbft repo
         run: make fetch
+      # Generate _data folder content
+      - name: Build versions data
+        run: make versions-data
       # Install Jekyll dependencies
       - name: Install dependencies
         run: |
