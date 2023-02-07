@@ -26,6 +26,14 @@ $widthOfSearchResults: 35vw;
     top: 55%;
     transform: translateY(-50%);
   }
+
+  @include for-breakpoint(phones) {
+    width: 100%;
+  }
+}
+
+.SiteSearch-input {
+  width: 100%;
 }
 
 .SiteSearch-results {
@@ -50,6 +58,10 @@ $widthOfSearchResults: 35vw;
 
   &:empty {
     display: none;
+  }
+
+  @include for-breakpoint(phones) {
+    width: 90vw;
   }
 }
 
