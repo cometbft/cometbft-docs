@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
-  push:
-    branches:
-      - andy/deploy-build
 jobs:
   build:
     name: Build and deploy to Netlify
