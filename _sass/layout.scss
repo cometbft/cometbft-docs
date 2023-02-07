@@ -87,6 +87,7 @@
 
 .SiteHeader-content {
   align-items: flex-end;
+  @include columnGap(normal);
   @include justifyContent(space-between);
 
   @include for-breakpoint(tabletsOrLarger) {
@@ -95,11 +96,11 @@
 }
 
 .SiteHeader-logo {
-  align-items: center;
   @include rowGap(xTight);
   @include fontSize(large);
 
   @include for-breakpoint(tabletsOrLarger) {
+    align-items: center;
     @include columnGap(normal);
   }
 }
@@ -131,6 +132,7 @@
 .VersionMenu {
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
   background-color: transparent;
   cursor: pointer;
 }
@@ -171,6 +173,10 @@
 
   @include paddingX(loose);
   @include rowGap(normal);
+
+  @include for-breakpoint(phones) {
+    width: 100vw;
+  }
 
   @include for-breakpoint(tabletsOrLarger) {
     padding-left: 0;

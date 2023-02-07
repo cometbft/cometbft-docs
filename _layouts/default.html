@@ -1,5 +1,5 @@
 {%- assign urlParts = page.url | replace_first: "/", "" | split: "/" -%}
-{%- if urlParts[0] == "index" -%}
+{%- if urlParts[0] == "index" or urlParts[0] == "404.html" -%}
   {%- assign currentVersion = site.data.default_version.output_path -%}
 {%- else -%}
   {%- assign currentVersion = urlParts[0] -%}
@@ -27,28 +27,30 @@
               <a href="/{{ currentVersion }}/">CometBFT</a>
             </h1>
 
-            <label class="VersionMenu-wrapper">
-              <select class="VersionMenu js-version-menu" name="version">
-                <optgroup label="Versions">
-                  {% for version in site.data.versions %}
-                    {% if version.visible %}
-                      <option
-                        value="{{ version.output_path }}"
-                        {% if version.output_path == currentVersion %} selected{% endif %}
-                      >
-                        {{ version.output_path }}
-                      </option>
-                    {% endif %}
-                  {% endfor %}
-                </optgroup>
-              </select>
-            </label>
+            {% if urlParts[0] != "404.html" %}
+              <label class="VersionMenu-wrapper">
+                <select class="VersionMenu js-version-menu" name="version">
+                  <optgroup label="Versions">
+                    {% for version in site.data.versions %}
+                      {% if version.visible %}
+                        <option
+                          value="{{ version.output_path }}"
+                          {% if version.output_path == currentVersion %} selected{% endif %}
+                        >
+                          {{ version.output_path }}
+                        </option>
+                      {% endif %}
+                    {% endfor %}
+                  </optgroup>
+                </select>
+              </label>
+            {% endif %}
           </div>
 
           <div class="SiteSearch">
             <div class="SiteSearch-inputWrapper">
               <input
-                class="js-search-input"
+                class="SiteSearch-input js-search-input"
                 placeholder="Search..."
                 type="search" />
             </div>
