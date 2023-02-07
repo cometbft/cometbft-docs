@@ -16,8 +16,10 @@ fetch: clean
 			git checkout $${branch} ; \
 			cd ../.. ; \
 			mkdir -pv _pages/$${output_path}/spec ; \
+			mkdir -pv _pages/$${output_path}/rpc ; \
 			cp -r build/cometbft/docs/* _pages/$${output_path} ; \
 			cp -r build/cometbft/spec/* _pages/$${output_path}/spec ; \
+			cp -r build/cometbft/rpc/openapi/* _pages/$${output_path}/rpc ; \
 			find _pages/$${output_path} -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
 			echo "" ; \
 		done < VERSIONS
