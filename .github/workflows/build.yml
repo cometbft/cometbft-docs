@@ -2,7 +2,9 @@ name: Build and Deploy to Netlify
 # This workflow runs periodically builds (daily) to deploy the
 # CometBFT documentation website to Netlify
 on:
-  pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
