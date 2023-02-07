@@ -3,6 +3,7 @@ name: Build and Deploy to Netlify
 # CometBFT documentation website to Netlify
 on:
   pull_request:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
   push:
