@@ -4,7 +4,7 @@
 }
 
 .ModalLayer {
-  background-color: white;
+  background-color: var(--color--background);
   border: 2px solid var(--color--border);
   border-radius: var(--borderRadius--normal);
   box-shadow: var(--shadow--normal);

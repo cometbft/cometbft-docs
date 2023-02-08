@@ -12,7 +12,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/assets/css/styles.css" />
     <title>{{ site.title }} - {{ page.title }} - {{ currentVersion }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Glegoo:wght@400;700&family=Inter:wght@300;700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@400;700&family=Inter&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="shortcut icon" href="/assets/images/favicon.png" />
     <script src="https://kit.fontawesome.com/401fb1e734.js" crossorigin="anonymous"></script>
     <script src="/assets/js/navigation.js"></script>
     <script src="/assets/js/search.js"></script>
@@ -24,7 +30,9 @@
         <div class="SiteHeader-content">
           <div class="SiteHeader-logo">
             <h1 class="SiteHeader-logoText">
-              <a href="/{{ currentVersion }}/">CometBFT</a>
+              <a class="SiteHeader-logoLink" href="/{{ currentVersion }}/">
+                <img src="/assets/images/logo.svg" alt="CometBFT Logo" height="40" />
+              </a>
             </h1>
 
             {% if urlParts[0] != "404.html" %}
@@ -113,5 +121,7 @@
         </div>
       </footer>
     </div>
+
+    <img class="DecorativeOrb" src="/assets/images/orb-top-left.svg" alt="Decorative Orb" />
   </body>
 </html>
