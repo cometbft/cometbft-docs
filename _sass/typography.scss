@@ -4,11 +4,13 @@
 
   --fontSize--small: 0.8rem;
   --fontSize--normal: 1rem;
-  --fontSize--large: 1.25rem;
+  --fontSize--normal--display: 1.5rem;
+  --fontSize--large: 2rem;
   --fontSize--xLarge: 3rem;
 
   --lineHeight--small: 1rem;
   --lineHeight--normal: 1.6rem;
+  --lineHeight--normal--display: 1.8rem;
   --lineHeight--large: 2rem;
   --lineHeight--xLarge: 3rem;
 
@@ -58,6 +60,10 @@
 
 .text--heading--2 {
   @include fontSize(large);
+}
+
+.text--heading--3 {
+  @include fontSize('normal--display');
 }
 
 .text--highlight {
