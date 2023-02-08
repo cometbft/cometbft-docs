@@ -35,11 +35,12 @@
   font-family: var(--font--display);
   font-weight: 700;
 
-  background: linear-gradient(160deg, var(--color--primary) 20%, var(--color--secondary) 90%);
+  background-image: linear-gradient(160deg, var(--color--primary) 20%, var(--color--secondary) 90%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   -moz-background-clip: text;
   background-clip: text;
+  width: fit-content;
 }
 
 .text--heading--1,
