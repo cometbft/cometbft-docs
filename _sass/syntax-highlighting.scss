@@ -1,5 +1,5 @@
 pre.highlight {
-  border: 1px solid #03bb0033;
+  border: 1px solid var(--color--primary);
   background-color: var(--color--primary--10);
   border-radius: var(--borderRadius--normal);
   font-family: monospace;
@@ -22,11 +22,11 @@ pre.highlight {
   background-color: #e3d2d2;
 } /* Error */
 .highlight .k {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword */
 .highlight .o {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Operator */
 .highlight .cm {
@@ -48,11 +48,11 @@ pre.highlight {
   font-style: italic;
 } /* Comment.Special */
 .highlight .gd {
-  color: #000000;
+  color: var(--color--text);
   background-color: #ffdddd;
 } /* Generic.Deleted */
 .highlight .ge {
-  color: #000000;
+  color: var(--color--text);
   font-style: italic;
 } /* Generic.Emph */
 .highlight .gr {
@@ -62,7 +62,7 @@ pre.highlight {
   color: #999999;
 } /* Generic.Heading */
 .highlight .gi {
-  color: #000000;
+  color: var(--color--text);
   background-color: #ddffdd;
 } /* Generic.Inserted */
 .highlight .go {
@@ -81,23 +81,23 @@ pre.highlight {
   color: #aa0000;
 } /* Generic.Traceback */
 .highlight .kc {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword.Constant */
 .highlight .kd {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword.Declaration */
 .highlight .kn {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword.Namespace */
 .highlight .kp {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword.Pseudo */
 .highlight .kr {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Keyword.Reserved */
 .highlight .kt {
@@ -114,7 +114,7 @@ pre.highlight {
   color: #008080;
 } /* Name.Attribute */
 .highlight .nb {
-  color: #0086b3;
+  color: var(--color--secondary);
 } /* Name.Builtin */
 .highlight .nc {
   color: #445588;
@@ -146,13 +146,13 @@ pre.highlight {
   color: #555555;
 } /* Name.Namespace */
 .highlight .nt {
-  color: #000080;
+  color: var(--color--primary);
 } /* Name.Tag */
 .highlight .nv {
   color: #008080;
 } /* Name.Variable */
 .highlight .ow {
-  color: #000000;
+  color: var(--color--text);
   font-weight: bold;
 } /* Operator.Word */
 .highlight .w {

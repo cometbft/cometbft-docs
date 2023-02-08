@@ -9,6 +9,36 @@
   scroll-padding-top: 80px;
 }
 
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-corner {
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color--primary);
+  border-radius: var(--borderRadius--normal);
+  border: 1px solid var(--color--background);
+}
+
+::-webkit-scrollbar-track {
+}
+
+body {
+  background-color: var(--color--background);
+  color: white;
+}
+
+.DecorativeOrb {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  transform: rotate(180deg);
+  z-index: -1;
+}
+
 .GridLayout {
   display: grid;
   grid-template-areas:
@@ -50,7 +80,7 @@
   $shadowHeight: 20px;
 
   &::before {
-    background-color: white;
+    background-color: var(--color--background);
     border-bottom: 1px solid var(--color--border);
     bottom: 0;
     content: '';
@@ -96,8 +126,8 @@
 }
 
 .SiteHeader-logo {
+  line-height: 0;
   @include rowGap(xTight);
-  @include fontSize(large);
 
   @include for-breakpoint(tabletsOrLarger) {
     align-items: center;
@@ -107,6 +137,10 @@
 
 .SiteHeader-logoText {
   font-weight: bold;
+}
+
+.SiteHeader-logoLink {
+  display: block;
 }
 
 .VersionMenu-wrapper {

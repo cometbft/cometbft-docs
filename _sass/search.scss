@@ -121,7 +121,7 @@ $widthOfSearchResults: 35vw;
 }
 
 .SiteSearch-resultTally {
-  background-color: white;
+  background-color: var(--color--background);
   border-bottom: 1px solid var(--color--border);
   color: var(--color--text--faded);
   font-weight: bold;

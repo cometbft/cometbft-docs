@@ -1,16 +1,16 @@
 :root {
-  --font--display: 'Glegoo', serif;
+  --font--display: 'Darker Grotesque', sans-serif;
   --font--body: 'Inter', sans-serif;
 
   --fontSize--small: 0.8rem;
   --fontSize--normal: 1rem;
   --fontSize--large: 1.25rem;
-  --fontSize--xLarge: 2rem;
+  --fontSize--xLarge: 3rem;
 
   --lineHeight--small: 1rem;
   --lineHeight--normal: 1.6rem;
   --lineHeight--large: 2rem;
-  --lineHeight--xLarge: 2.5rem;
+  --lineHeight--xLarge: 3rem;
 
   font-family: var(--font--body);
   font-size: 16px;
@@ -32,6 +32,12 @@
   color: var(--color--primary);
   font-family: var(--font--display);
   font-weight: 700;
+
+  background: linear-gradient(160deg, var(--color--primary) 20%, var(--color--secondary) 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
+  background-clip: text;
 }
 
 .text--heading--1,
@@ -150,10 +156,18 @@
     @include marginTop(tight);
   }
 
+  pre {
+    background-color: var(--color--primary--10);
+    border-radius: var(--borderRadius--normal);
+    border: 1px solid var(--color--primary);
+    overflow-x: auto;
+  }
+
   code {
     background-color: var(--color--primary--10);
     display: inline-block;
     font-family: monospace;
+    word-break: break-all;
     @include paddingX(xTight);
   }
 

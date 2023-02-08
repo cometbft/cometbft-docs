@@ -1,14 +1,15 @@
 @use 'sass:color';
 
 $colors: (
-  'border': rgba(0, 0, 0, 0.2),
+  'background': 'black',
+  'border': rgba(255, 255, 255, 0.2),
   'shadow': rgba(0, 0, 0, 0.35),
-  'secondary': #ffa500,
-  'secondary--10': scale-color(#ffa500, $alpha: -80%),
-  'primary': #03bb00,
-  'primary--10': scale-color(#d2e1dd, $lightness: 70%, $saturation: 30%),
-  'text': rgba(0, 0, 0, 0.9),
-  'text--faded': rgba(0, 0, 0, 0.6),
+  'secondary': #6fe5c9,
+  'secondary--10': #172e28,
+  'primary': #4275ff,
+  'primary--10': #0d1733,
+  'text': rgba(255, 255, 255, 0.9),
+  'text--faded': rgba(255, 255, 255, 0.6),
 );
 
 :root {
