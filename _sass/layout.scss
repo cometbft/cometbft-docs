@@ -32,10 +32,11 @@ body {
 }
 
 .DecorativeOrb {
-  position: fixed;
   bottom: 0;
+  position: fixed;
   right: 0;
   transform: rotate(180deg);
+  width: 100vw;
   z-index: -1;
 }
 
