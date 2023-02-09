@@ -46,6 +46,7 @@
 
 .TreeMenu-item.is-active {
   & > .TreeMenu-button {
+    color: var(--color--secondary);
     font-weight: bold;
   }
 }
@@ -77,6 +78,7 @@
 .TableOfContents-button {
   &:hover,
   &.is-active {
+    color: var(--color--secondary);
     font-weight: bold;
   }
 }
