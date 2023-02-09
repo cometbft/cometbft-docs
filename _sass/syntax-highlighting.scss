@@ -19,7 +19,6 @@ pre.highlight {
 } /* Comment */
 .highlight .err {
   color: #a61717;
-  background-color: #e3d2d2;
 } /* Error */
 .highlight .k {
   color: var(--color--text);
@@ -101,14 +100,14 @@ pre.highlight {
   font-weight: bold;
 } /* Keyword.Reserved */
 .highlight .kt {
-  color: #445588;
+  color: var(--color--primary);
   font-weight: bold;
 } /* Keyword.Type */
 .highlight .m {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number */
 .highlight .s {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String */
 .highlight .na {
   color: var(--color--secondary);
@@ -117,7 +116,7 @@ pre.highlight {
   color: var(--color--secondary);
 } /* Name.Builtin */
 .highlight .nc {
-  color: #445588;
+  color: var(--color--primary);
   font-weight: bold;
 } /* Name.Class */
 .highlight .no {
@@ -131,15 +130,15 @@ pre.highlight {
   color: #800080;
 } /* Name.Entity */
 .highlight .ne {
-  color: #990000;
+  color: #ff7a00;
   font-weight: bold;
 } /* Name.Exception */
 .highlight .nf {
-  color: #990000;
+  color: #ff7a00;
   font-weight: bold;
 } /* Name.Function */
 .highlight .nl {
-  color: #990000;
+  color: #ff7a00;
   font-weight: bold;
 } /* Name.Label */
 .highlight .nn {
@@ -159,46 +158,46 @@ pre.highlight {
   color: #bbbbbb;
 } /* Text.Whitespace */
 .highlight .mf {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number.Float */
 .highlight .mh {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number.Hex */
 .highlight .mi {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number.Integer */
 .highlight .mo {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number.Oct */
 .highlight .sb {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Backtick */
 .highlight .sc {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Char */
 .highlight .sd {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Doc */
 .highlight .s2 {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Double */
 .highlight .se {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Escape */
 .highlight .sh {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Heredoc */
 .highlight .si {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Interpol */
 .highlight .sx {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Other */
 .highlight .sr {
   color: #009926;
 } /* Literal.String.Regex */
 .highlight .s1 {
-  color: #d01040;
+  color: #ff0040;
 } /* Literal.String.Single */
 .highlight .ss {
   color: #990073;
@@ -216,5 +215,5 @@ pre.highlight {
   color: var(--color--secondary);
 } /* Name.Variable.Instance */
 .highlight .il {
-  color: #009999;
+  color: var(--color--secondary);
 } /* Literal.Number.Integer.Long */
