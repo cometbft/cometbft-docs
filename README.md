@@ -75,10 +75,22 @@ If you want to run the site locally you can run the follow command:
 make serve
 ```
 
-This will run a local HTTP server (based on Golang):
+This will run a docker container with Jekyll to host the website locally. 
 
 ```
-Running documentation site at http://localhost:8088
+---> Preparing to host documentation site locally
+---> This might take a few seconds...
+---> If the site was not built with 'make build', this will take a bit longer...
+...
+ Auto-regeneration: enabled for '/srv/jekyll'
+    Server address: http://0.0.0.0:8088/
+  Server running... press ctrl-c to stop.
+
 ```
 
-Navigate to `http://localhost:8088` to see the website in your local browser.
+Running it with Jekyll offers hot-reloading and any modifications to local files 
+(e.g. '.md' documents will automatically rebuild the website and changes will show in the browser)
+
+Navigate to `http://0.0.0.0:8088` to see the website in your local browser.
+
+> **Note**: the `make build` and `make serve` assumes you have [Docker](https://www.docker.com/) properly installed in your machine.

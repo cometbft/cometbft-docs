@@ -50,11 +50,14 @@ versions-data:
 	done < VERSIONS
 .PHONY: versions-data
 
-# Serve the built site from the _site folder
-serve:
-	@echo "---> Running documentation site at http://localhost:8088"
-	@go run http_server.go
-.PHONY: serve
+# This builds the documentation site for cometbft (docs.cometbft.com)
+serve: versions-data
+	@echo "---> Preparing to host documentation site locally"
+	@echo "---> This might take a few seconds..."
+	@echo "---> If the site was not built with 'make build', this will take a bit longer..."
+	@docker run -it --rm -p 8088:8088 --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
+	/bin/bash -c 'cd /srv/jekyll/ && jekyll serve --incremental --port 8088'
+.PHONY: build
 
 clean:
 	@echo "---> Deleting all previous build artifacts"
