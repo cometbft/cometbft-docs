@@ -67,7 +67,7 @@ make build
 If everything runs correctly, a new folder will be created `_site`. This folder
 contains the website files built by Jekyll.
 
-### Running the site locally
+## Running the site locally
 
 If you want to run the site locally you can run the follow command:
 
@@ -94,3 +94,52 @@ Running it with Jekyll offers hot-reloading and any modifications to local files
 Navigate to `http://0.0.0.0:8088` to see the website in your local browser.
 
 > **Note**: the `make build` and `make serve` assumes you have [Docker](https://www.docker.com/) properly installed in your machine.
+
+## Checking for broken links
+
+If you want to check for any broken links locally on the documentation site, 
+you can run the `make check-broken-links` command. This will go through all 
+the pages a look for links that return a `404` error.
+
+This command leverages a tool called [muffet](https://github.com/raviqqe/muffet). 
+This tool will be installed if you don't have it yet 
+(this assumes you have `Golang` properly installed in your machine)
+
+> **NOTE**: Before you run the command to check for broken links, 
+> open a terminal window and run `make serve` first. 
+> This will run the website locally as per instructions above
+
+Open another terminal window and run:
+```
+make check-broken-links
+```
+
+This will go through each release and check the links, for example:
+```
+---> Checking for broken link on the pages...
+---> Installing "muffet" tool to check links if not already installed...
+------> Checking broken links for release main
+------> Saved broken links for release main in broken_links_main.txt
+------> Checking broken links for release v0.37-rc2
+------> Saved broken links for release v0.37-rc2 in broken_links_v0.37-rc2.txt
+------> Checking broken links for release v0.34
+------> Saved broken links for release v0.34 in broken_links_v0.34.txt
+```
+
+Once the command finishes, you can see the broken links information for each release 
+will be stored in the `broken_links_[version].txt` generated files.
+
+> **NOTE**: Every time you run this command, the files `broken_links_[version].txt` 
+> will be removed before the command runs
+
+## Troubleshooting
+
+### Unauthorized error in Docker
+If you run the `make build` or `make serve` command and get a message like the one below:
+
+```
+Error response from daemon: Head "https://registry-1.docker.io/v2/jekyll/builder/manifests/latest": 
+unauthorized: please use personal access token to login
+```
+
+Please ensure you [login in Docker using your Personal Access Token](https://docs.docker.com/docker-hub/access-tokens/)
