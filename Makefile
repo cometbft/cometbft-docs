@@ -30,7 +30,8 @@ build: versions-data
 	@echo "---> Building documentation"
 	@rm -rf _site
 	@docker run -it --rm --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
-		/bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V'
+		/bin/bash -c 'cd /srv/jekyll/ && JEKYLL_LOG_LEVL=warn bundle install && bundle exec jekyll build --future -V '
+	@rm -rf _site/build
 .PHONY: build
 
 # Creates _data/versions.yml, which is built from the VERSIONS file, in order
@@ -50,9 +51,6 @@ versions-data:
 	done < VERSIONS
 .PHONY: versions-data
 
-# This command checks for broken links (error 404) on pages. In order to run
-# this command locally, please run `make serve` in a terminal window, then
-# open another terminal window and run this command `make check-broken`.
 check-broken-links:
 	@rm -f broken_links_*.txt
 	@echo "---> Checking for broken link on the pages..."
@@ -60,18 +58,18 @@ check-broken-links:
 	@go install github.com/raviqqe/muffet/v2@latest
 	@while read -r branch output_path visible ; do \
     		echo "------> Checking broken links for release $${output_path}" ; \
-    		muffet --skip-tls-verification -e https://fonts* http://0.0.0.0:8088/$${output_path} >> broken_links_$${output_path}.txt ; \
+    		muffet --skip-tls-verification -e https://github.com -e https://fonts* http://0.0.0.0:8088/$${output_path} >> broken_links_$${output_path}.txt ; \
     		echo "------> Saved broken links for release $${output_path} in broken_links_$${output_path}.txt" ; \
 	done < VERSIONS
 .PHONY: check-broken-links
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
 serve: versions-data
+	@if [ ! -d "_site" ]; then echo "Directory _site does not exist. Please run make build before running this command"; exit 1; fi
 	@echo "---> Preparing to host documentation site locally"
 	@echo "---> This might take a few seconds..."
-	@echo "---> If the site was not built with 'make build', this will take a bit longer..."
 	@docker run -it --rm -p 8088:8088 --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
-	/bin/bash -c 'cd /srv/jekyll/ && jekyll serve --incremental --port 8088'
+	/bin/bash -c 'cd /srv/jekyll/ && jekyll serve --skip-initial-build true --incremental --port 8088'
 .PHONY: build
 
 clean:
