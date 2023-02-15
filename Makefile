@@ -50,6 +50,21 @@ versions-data:
 	done < VERSIONS
 .PHONY: versions-data
 
+# This command checks for broken links (error 404) on pages. In order to run
+# this command locally, please run `make serve` in a terminal window, then
+# open another terminal window and run this command `make check-broken`.
+check-broken-links:
+	@rm -f broken_links_*.txt
+	@echo "---> Checking for broken link on the pages..."
+	@echo "---> Installing \"muffet\" tool to check links if not already installed"
+	@go install github.com/raviqqe/muffet/v2@latest
+	@while read -r branch output_path visible ; do \
+    		echo "------> Checking broken links for release $${output_path}" ; \
+    		muffet --skip-tls-verification -e https://fonts* http://0.0.0.0:8088/$${output_path} >> broken_links_$${output_path}.txt ; \
+    		echo "------> Saved broken links for release $${output_path} in broken_links_$${output_path}.txt" ; \
+	done < VERSIONS
+.PHONY: check-broken-links
+
 # This builds the documentation site for cometbft (docs.cometbft.com)
 serve: versions-data
 	@echo "---> Preparing to host documentation site locally"
