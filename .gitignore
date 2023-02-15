@@ -14,5 +14,4 @@ _data/versions.yml
 _data/default_version.yml
 
 # Checks
-broken_links*
-
+broken_links_*
