@@ -4,7 +4,7 @@
 
 # Clone repository branches and copy docs and spec folders into our _pages
 # collection.
-fetch: clean
+fetch: clean versions-data
 	@echo "---> Fetching documentation from CometBFT repository"
 	@mkdir -p build ; \
 		cd build ; \
@@ -23,14 +23,25 @@ fetch: clean
 			find _pages/$${output_path} -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
 			echo "" ; \
 		done < VERSIONS
+	@if [ "${LOCAL_DOCS_REPO}" ]; then \
+		echo "Executing a local build from: $${LOCAL_DOCS_REPO}"; \
+		mkdir -pv _pages/dev/spec ; \
+		mkdir -pv _pages/dev/rpc ; \
+		cp -r $${LOCAL_DOCS_REPO}/docs/* _pages/dev ; \
+		cp -r $${LOCAL_DOCS_REPO}/spec/* _pages/dev/spec ; \
+		cp -r $${LOCAL_DOCS_REPO}/rpc/openapi/* _pages/dev/rpc ; \
+		find _pages/dev -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
+		echo ""; \
+	fi
 .PHONY: fetch
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
-build: versions-data
+build:
+	@if [ ! -d "_pages" ]; then echo "Directory _pages does not exist. Please run \"make fetch\" before running this command"; exit 1; fi
 	@echo "---> Building documentation"
 	@rm -rf _site
 	@docker run -it --rm --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
-		/bin/bash -c 'cd /srv/jekyll/ && JEKYLL_LOG_LEVL=warn bundle install && bundle exec jekyll build --future -V '
+		/bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V '
 	@rm -rf _site/build
 .PHONY: build
 
@@ -49,6 +60,13 @@ versions-data:
 		echo "  visible: $${visible}" >> _data/versions.yml; \
 		echo "output_path: $${output_path}" > _data/default_version.yml ; \
 	done < VERSIONS
+	@if [ "${LOCAL_DOCS_REPO}" ]; then \
+		echo "Adding \"dev\" version"; \
+		echo "- branch: dev" >> _data/versions.yml; \
+		echo "  output_path: dev" >> _data/versions.yml; \
+		echo "  visible: true" >> _data/versions.yml; \
+		echo "output_path: dev" > _data/default_version.yml ; \
+	fi
 .PHONY: versions-data
 
 check-broken-links:
@@ -65,7 +83,7 @@ check-broken-links:
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
 serve: versions-data
-	@if [ ! -d "_site" ]; then echo "Directory _site does not exist. Please run make build before running this command"; exit 1; fi
+	@if [ ! -d "_site" ]; then echo "Directory _site does not exist. Please run \"make build\" before running this command"; exit 1; fi
 	@echo "---> Preparing to host documentation site locally"
 	@echo "---> This might take a few seconds..."
 	@docker run -it --rm -p 8088:8088 --volume ${PWD}:/srv/jekyll jekyll/builder:stable \

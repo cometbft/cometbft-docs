@@ -67,6 +67,21 @@ make build
 If everything runs correctly, a new folder will be created `_site`. This folder
 contains the website files built by Jekyll.
 
+### Building for local development
+
+If you want to add a `dev` version that fetches the `/docs` and `/specs` folder from a local branch of `cometbft`,
+you can specify an environment variable `LOCAL_DOCS_REPO` pointing to the `cometbft` repo location. For example:
+
+```
+make LOCAL_DOCS_REPO=../cometbft fetch
+```
+
+This will add a `dev` option to the dropdown versions control on the website, and it will make it the default version. 
+
+This is helpful when 
+you need to update content in the `docs` or `spec` folder and test them locally before committing the changes
+to the `cometbft` repo.
+
 ## Running the site locally
 
 If you want to run the site locally you can run the follow command:
