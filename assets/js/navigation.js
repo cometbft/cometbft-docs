@@ -1,6 +1,6 @@
-window.addEventListener("DOMContentLoaded", initNavigationTree);
-window.addEventListener("DOMContentLoaded", initVersionMenu);
-window.addEventListener("scroll", handlePageScroll);
+window.addEventListener('DOMContentLoaded', initNavigationTree);
+window.addEventListener('DOMContentLoaded', initVersionMenu);
+window.addEventListener('scroll', handlePageScroll);
 
 function handlePageScroll(scrollEvent) {
   updateTableOfContents(scrollEvent);
@@ -8,8 +8,12 @@ function handlePageScroll(scrollEvent) {
 }
 
 function handleTreeMenuButtonClick(event) {
-  const parentMenuItem = event.target;
-  parentMenuItem.classList.toggle("is-active");
+  const buttonElement = event.target;
+  const parentMenuItem = buttonElement.closest('.js-tree-menu-parent-item');
+
+  event.preventDefault();
+
+  parentMenuItem.classList.toggle('is-active');
 }
 
 function handleVersionMenuChange(changeEvent) {
@@ -22,28 +26,28 @@ function handleVersionMenuChange(changeEvent) {
 
 function initNavigationTree() {
   document
-    .querySelectorAll(".js-tree-menu-parent-item")
+    .querySelectorAll('.js-tree-menu-toggle-button')
     .forEach((buttonElement) => {
-      buttonElement.addEventListener("click", handleTreeMenuButtonClick);
+      buttonElement.addEventListener('click', handleTreeMenuButtonClick);
     });
 }
 
 function initVersionMenu() {
-  const selectElement = document.querySelector(".js-version-menu");
+  const selectElement = document.querySelector('.js-version-menu');
 
-  selectElement.addEventListener("change", handleVersionMenuChange);
+  selectElement.addEventListener('change', handleVersionMenuChange);
 }
 
 function updateStickyHeader(scrollEvent) {
-  const siteHeaderElement = document.querySelector(".js-sticky-site-header");
+  const siteHeaderElement = document.querySelector('.js-sticky-site-header');
   const distanceScrolled = scrollEvent.target.scrollingElement.scrollTop;
 
-  siteHeaderElement.classList.toggle("is-stuck", distanceScrolled >= 50);
+  siteHeaderElement.classList.toggle('is-stuck', distanceScrolled >= 50);
 }
 
 function updateTableOfContents() {
   const allHeadings = Array.from(
-    document.querySelectorAll("h2[id], h3[id], h4[id], h5[id], h6[id]")
+    document.querySelectorAll('h2[id], h3[id], h4[id], h5[id], h6[id]')
   );
 
   let lowestSectionAboveFold = null;
@@ -61,11 +65,11 @@ function updateTableOfContents() {
     return true;
   });
 
-  const allAnchors = Array.from(document.querySelectorAll(".js-toc-button"));
+  const allAnchors = Array.from(document.querySelectorAll('.js-toc-button'));
 
   allAnchors.forEach((anchor) => {
     anchor.classList.toggle(
-      "is-active",
+      'is-active',
       anchor.href.endsWith(`#${lowestSectionAboveFold}`)
     );
   });
