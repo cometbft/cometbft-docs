@@ -21,6 +21,7 @@ fetch: clean versions-data
 			cp -r build/cometbft/spec/* _pages/$${output_path}/spec ; \
 			cp -r build/cometbft/rpc/openapi/* _pages/$${output_path}/rpc ; \
 			find _pages/$${output_path} -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
+			rm -rf _pages/$${output_path}/architecture _pages/$${output_path}/rfc ; \
 			echo "" ; \
 		done < VERSIONS
 	@if [ "${LOCAL_DOCS_REPO}" ]; then \
@@ -31,6 +32,7 @@ fetch: clean versions-data
 		cp -r $${LOCAL_DOCS_REPO}/spec/* _pages/dev/spec ; \
 		cp -r $${LOCAL_DOCS_REPO}/rpc/openapi/* _pages/dev/rpc ; \
 		find _pages/dev -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
+		rm -rf _pages/dev/architecture _pages/dev/rfc ; \
 		echo ""; \
 	fi
 .PHONY: fetch
@@ -82,7 +84,7 @@ check-broken-links:
 .PHONY: check-broken-links
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
-serve: versions-data
+serve:
 	@if [ ! -d "_site" ]; then echo "Directory _site does not exist. Please run \"make build\" before running this command"; exit 1; fi
 	@echo "---> Preparing to host documentation site locally"
 	@echo "---> This might take a few seconds..."
