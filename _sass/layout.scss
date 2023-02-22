@@ -168,7 +168,7 @@ body {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: transparent;
+  background-color: var(--color--background);
   cursor: pointer;
 }
 
