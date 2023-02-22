@@ -41,6 +41,10 @@
   -moz-background-clip: text;
   background-clip: text;
   width: fit-content;
+
+  code {
+    background-color: transparent;
+  }
 }
 
 .text--heading--1,
