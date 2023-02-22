@@ -81,6 +81,11 @@ check-broken-links:
     		muffet --skip-tls-verification -e https://github.com -e https://fonts* http://0.0.0.0:8088/$${output_path} >> broken_links_$${output_path}.txt ; \
     		echo "------> Saved broken links for release $${output_path} in broken_links_$${output_path}.txt" ; \
 	done < VERSIONS
+	@if [ "${LOCAL_DOCS_REPO}" ]; then \
+  	echo "------> Checking broken links for release dev" ; \
+		muffet --skip-tls-verification -e https://github.com -e https://fonts* http://0.0.0.0:8088/$${output_path} >> broken_links_dev.txt ; \
+		echo "------> Saved broken links for release dev in broken_links_dev.txt" ; \
+  fi
 .PHONY: check-broken-links
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
