@@ -1,3 +1,5 @@
+{% assign currentVersion = site.data.default_version.output_path %}
+
 {% assign lastSixCharsOfPageUrl = page.url | slice: -6, 6 %}
 
 {% if lastSixCharsOfPageUrl == '/index' %}
@@ -93,4 +95,12 @@
       </li>
     {% endif %}
   {% endfor %}
+  <li class="
+            TreeMenu-item
+            js-tree-menu-parent-item
+            has-children">
+    <a class="TreeMenu-button js-tree-menu-toggle-button" href="/{{ currentVersion }}/rpc">
+      RPC
+    </a>
+  </li>
 </ul>
