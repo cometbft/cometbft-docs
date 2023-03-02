@@ -89,13 +89,13 @@
           {% endif %}
         </a>
 
-        {% include nav.html path=pathWithoutIndex %}
+        {% include nav.html path=pathWithoutIndex isSubLevel=true %}
       </li>
     {% endif %}
   {% endfor %}
-  <li class="TreeMenu-item js-tree-menu-parent-item">
-    <a class="TreeMenu-button js-tree-menu-toggle-button" href="{{ include.path }}/rpc">
-      RPC
-    </a>
-  </li>
+  {% if include.isSubLevel != true  %}
+    <li class="TreeMenu-item js-tree-menu-parent-item">
+      <a class="TreeMenu-button js-tree-menu-toggle-button" href="{{ include.path }}/rpc">RPC</a>
+    </li>
+  {% endif %}
 </ul>
