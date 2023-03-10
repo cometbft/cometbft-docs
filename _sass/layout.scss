@@ -35,7 +35,7 @@ body {
   bottom: 0;
   position: fixed;
   right: 0;
-  transform: rotate(180deg);
+  transform: translate(20%, 20%) rotate(180deg);
   width: 100vw;
   z-index: -1;
 }
@@ -65,7 +65,7 @@ body {
   }
 
   @include for-breakpoint(bigDesktopsOrLarger) {
-    max-width: 80vw;
+    max-width: 1400px;
   }
 }
 
