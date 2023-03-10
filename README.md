@@ -6,9 +6,18 @@ This repository contains the logic to build the CometBFT documentation site
 It uses [Jekyll](https://jekyllrb.com/) framework to the site structure and
 templating.
 
+## Documentation Content Updates
+
 The technical content for the documentation is retrieved from the
 [CometBFT](https://github.com/cometbft/cometbft) repository, more specifically
 the `/docs` and `/spec` folders.
+
+We are constantly updating the documentation, but if you find any issues related
+to the documentation, such as inaccurate content or typos, please 
+create a [new an issue](https://github.com/cometbft/cometbft/issues/new?assignees=&labels=bug%2C+needs-triage&template=bug-report.md) 
+in the `cometbft` repository. 
+
+> **NOTE**: For any issue that might be related to the UI/UX of the documentation website, please [open an issue](https://github.com/cometbft/cometbft-docs/issues/new) in this repository
 
 ## Configuring versions
 
