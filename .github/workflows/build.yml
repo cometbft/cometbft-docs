@@ -4,7 +4,7 @@ name: Build and Deploy to Netlify
 on:
   push:
     branches:
-      - main
+      - cason/docs-symlink
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
