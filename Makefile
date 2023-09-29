@@ -44,14 +44,17 @@ build:
 	@rm -rf _site
 	@docker run -it --rm --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
 		/bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V '
-	@while read -r branch output_path visible ; do \
-		ln -s . _site/$${output_path}/docs ; \
-	done < VERSIONS
-	@if [ "${LOCAL_DOCS_REPO}" ]; then \
-		ln -s . _site/dev/docs ; \
-	fi
 	@rm -rf _site/build
 .PHONY: build
+
+symlinks:
+	@if [ ! -d "_pages" ]; then echo "Directory _pages does not exist. Please run \"make fetch\" before running this command"; exit 1; fi
+	@while read -r branch output_path visible ; do \
+		[ -L _site/$${output_path}/docs ] || ln -vs . _site/$${output_path}/docs ; \
+	done < VERSIONS
+	@if [ "${LOCAL_DOCS_REPO}" ]; then \
+		[ -L_site/dev/docs ] || ln -vs . _site/dev/docs ; \
+	fi
 
 # Creates _data/versions.yml, which is built from the VERSIONS file, in order
 # to provide information about versions to Jekyll during the site build

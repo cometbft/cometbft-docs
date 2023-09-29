@@ -36,6 +36,9 @@ jobs:
         run: |
           chmod a+wx .
           bundle exec jekyll build --disable-disk-cache -V
+      # Create _pages/version/docs link
+      - name: Add symbolic links
+        run: make symlinks
       # Deploy the _site folder to Netlify CometBFT documentation website
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0.0
