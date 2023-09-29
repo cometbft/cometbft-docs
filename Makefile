@@ -44,6 +44,12 @@ build:
 	@rm -rf _site
 	@docker run -it --rm --volume ${PWD}:/srv/jekyll jekyll/builder:stable \
 		/bin/bash -c 'cd /srv/jekyll/ && bundle install && bundle exec jekyll build --future -V '
+	@while read -r branch output_path visible ; do \
+		ln -s . _site/$${output_path}/docs ; \
+	done < VERSIONS
+	@if [ "${LOCAL_DOCS_REPO}" ]; then \
+		ln -s . _site/dev/docs ; \
+	fi
 	@rm -rf _site/build
 .PHONY: build
 
