@@ -15,22 +15,22 @@ fetch: clean versions-data
 			cd build/cometbft ; \
 			git checkout $${branch} ; \
 			cd ../.. ; \
-			mkdir -pv _pages/$${output_path}/spec ; \
-			mkdir -pv _pages/$${output_path}/rpc ; \
+			mkdir -pv _pages/$${output_path}/references/spec ; \
+			mkdir -pv _pages/$${output_path}/references/rpc ; \
 			cp -r build/cometbft/docs/* _pages/$${output_path} ; \
-			cp -r build/cometbft/spec/* _pages/$${output_path}/spec ; \
-			cp -r build/cometbft/rpc/openapi/* _pages/$${output_path}/rpc ; \
+			cp -r build/cometbft/spec/* _pages/$${output_path}/references/spec ; \
+			cp -r build/cometbft/rpc/openapi/* _pages/$${output_path}/references/rpc ; \
 			find _pages/$${output_path} -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
 			rm -rf _pages/$${output_path}/architecture _pages/$${output_path}/rfc ; \
 			echo "" ; \
 		done < VERSIONS
 	@if [ "${LOCAL_DOCS_REPO}" ]; then \
 		echo "Executing a local build from: $${LOCAL_DOCS_REPO}"; \
-		mkdir -pv _pages/dev/spec ; \
-		mkdir -pv _pages/dev/rpc ; \
+		mkdir -pv _pages/dev/references/spec ; \
+		mkdir -pv _pages/dev/references/rpc ; \
 		cp -r $${LOCAL_DOCS_REPO}/docs/* _pages/dev ; \
-		cp -r $${LOCAL_DOCS_REPO}/spec/* _pages/dev/spec ; \
-		cp -r $${LOCAL_DOCS_REPO}/rpc/openapi/* _pages/dev/rpc ; \
+		cp -r $${LOCAL_DOCS_REPO}/spec/* _pages/dev/references/spec ; \
+		cp -r $${LOCAL_DOCS_REPO}/rpc/openapi/* _pages/dev/references/rpc ; \
 		find _pages/dev -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
 		rm -rf _pages/dev/architecture _pages/dev/rfc ; \
 		echo ""; \
