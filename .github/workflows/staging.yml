@@ -1,0 +1,46 @@
+name: Build and Deploy to Netlify Staging
+# This workflow runs manually to deploy the
+# CometBFT documentation staging website to Netlify
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build and deploy to Netlify (Staging)
+    runs-on: ubuntu-latest
+    container:
+      image: jekyll/builder:stable
+      env:
+        JEKYLL_UID: 1001
+        JEKYLL_GID: 1001
+    steps:
+      # Checkout cometbft-docs repo
+      - name: Checkout site
+        uses: actions/checkout@v3
+      # Clone the cometbft repo
+      - name: Fetch cometbft repo
+        run: make fetch
+      # Generate _data folder content
+      - name: Build versions data
+        run: make versions-data
+      # Install Jekyll dependencies
+      - name: Install dependencies
+        run: |
+          bundle install
+      # Build the Jekyll website
+      - name: Build website
+        run: |
+          chmod a+wx .
+          bundle exec jekyll build --disable-disk-cache -V
+      # Deploy the _site folder to Netlify CometBFT documentation website
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.0.0
+        with:
+          publish-dir: './_site'
+          deploy-message: "Deploy from cometbft-docs GitHub Actions"
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+        timeout-minutes: 5
