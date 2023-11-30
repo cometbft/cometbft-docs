@@ -23,7 +23,7 @@ jobs:
         run: make fetch
       # Generate _data folder content
       - name: Build versions data
-        run: make versions-data
+        run: make STAGING_DOCS=true versions-data
       # Install Jekyll dependencies
       - name: Install dependencies
         run: |
