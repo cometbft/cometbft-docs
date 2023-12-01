@@ -69,6 +69,14 @@ versions-data:
 		echo "  visible: true" >> _data/versions.yml; \
 		echo "output_path: dev" > _data/default_version.yml ; \
 	fi
+	@if [ "${STAGING_DOCS}" ]; then \
+		echo "Adding \"staging\" version"; \
+		echo "- branch: staging-docs" >> _data/versions.yml; \
+		echo "  output_path: staging" >> _data/versions.yml; \
+		echo "  visible: true" >> _data/versions.yml; \
+		echo "output_path: staging" > _data/default_version.yml ; \
+		echo "staging-docs  staging          true" >> VERSIONS ; \
+	fi
 .PHONY: versions-data
 
 check-broken-links:
