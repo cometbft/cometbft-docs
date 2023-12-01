@@ -35,6 +35,20 @@ fetch: clean versions-data
 		rm -rf _pages/dev/architecture _pages/dev/rfc ; \
 		echo ""; \
 	fi
+	@if [ "${STAGING_DOCS}" ]; then \
+		echo "-----> Checking out staging-docs" ; \
+  	cd build/cometbft ; \
+  	git checkout staging-docs ; \
+  	cd ../.. ; \
+  	mkdir -pv _pages/staging/spec ; \
+  	mkdir -pv _pages/staging/rpc ; \
+  	cp -r build/cometbft/docs/* _pages/staging ; \
+  	cp -r build/cometbft/spec/* _pages/staging/spec ; \
+  	cp -r build/cometbft/rpc/openapi/* _pages/staging/rpc ; \
+  	find _pages/staging -type f -iname README.md | xargs -I % sh -c 'mv -v % $$(dirname %)/index.md' ; \
+  	rm -rf _pages/staging/architecture _pages/staging/rfc ; \
+  	echo "" ; \
+  fi
 .PHONY: fetch
 
 # This builds the documentation site for cometbft (docs.cometbft.com)
@@ -75,7 +89,6 @@ versions-data:
 		echo "  output_path: staging" >> _data/versions.yml; \
 		echo "  visible: true" >> _data/versions.yml; \
 		echo "output_path: staging" > _data/default_version.yml ; \
-		echo "staging-docs  staging          true" >> VERSIONS ; \
 	fi
 .PHONY: versions-data
 

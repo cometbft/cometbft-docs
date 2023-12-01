@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
       # Clone the cometbft repo
       - name: Fetch cometbft repo
-        run: make fetch
+        run: make STAGING_DOCS=true fetch
       # Generate _data folder content
       - name: Build versions data
         run: make STAGING_DOCS=true versions-data
