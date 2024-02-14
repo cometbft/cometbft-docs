@@ -36,9 +36,9 @@ fetch: clean versions-data
 		echo ""; \
 	fi
 	@if [ "${STAGING_DOCS}" ]; then \
-		echo "-----> Checking out staging-docs" ; \
+		echo "-----> Checking out ${STAGING_BRANCH:-staging-docs}" ; \
   	cd build/cometbft ; \
-  	git checkout staging-docs ; \
+  	git checkout ${STAGING_BRANCH:-staging-docs} ; \
   	cd ../.. ; \
   	mkdir -pv _pages/staging/spec ; \
   	mkdir -pv _pages/staging/rpc ; \
@@ -85,7 +85,7 @@ versions-data:
 	fi
 	@if [ "${STAGING_DOCS}" ]; then \
 		echo "Adding \"staging\" version"; \
-		echo "- branch: staging-docs" >> _data/versions.yml; \
+		echo "- branch: ${STAGING_BRANCH:-staging-docs}" >> _data/versions.yml; \
 		echo "  output_path: staging" >> _data/versions.yml; \
 		echo "  visible: true" >> _data/versions.yml; \
 		echo "output_path: staging" > _data/default_version.yml ; \
