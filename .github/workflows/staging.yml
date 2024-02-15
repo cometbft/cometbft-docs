@@ -2,9 +2,13 @@ name: Build and Deploy to Netlify Staging
 # This workflow runs manually to deploy the
 # CometBFT documentation staging website to Netlify
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'CometBFT branch with documentation'
+        required: false
+        default: 'staging-docs'
+        type: string
 jobs:
   build:
     name: Build and deploy to Netlify (Staging)
@@ -20,10 +24,10 @@ jobs:
         uses: actions/checkout@v3
       # Clone the cometbft repo
       - name: Fetch cometbft repo
-        run: make STAGING_DOCS=true fetch
+        run: make STAGING_DOCS=true STAGING_BRANCH=${{ inputs.branch }} fetch
       # Generate _data folder content
       - name: Build versions data
-        run: make STAGING_DOCS=true versions-data
+        run: make STAGING_DOCS=true STAGING_BRANCH=${{ inputs.branch }} versions-data
       # Install Jekyll dependencies
       - name: Install dependencies
         run: |

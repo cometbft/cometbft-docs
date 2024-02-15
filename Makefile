@@ -2,6 +2,9 @@
 ###                           Documentation                                 ###
 ###############################################################################
 
+# When deploying to the staging server, deploy from this branch.
+STAGING_BRANCH?=staging-docs
+
 # Clone repository branches and copy docs and spec folders into our _pages
 # collection.
 fetch: clean versions-data
@@ -36,9 +39,9 @@ fetch: clean versions-data
 		echo ""; \
 	fi
 	@if [ "${STAGING_DOCS}" ]; then \
-		echo "-----> Checking out staging-docs" ; \
+		echo "-----> Checking out ${STAGING_BRANCH}" ; \
   	cd build/cometbft ; \
-  	git checkout staging-docs ; \
+  	git checkout "${STAGING_BRANCH}" ; \
   	cd ../.. ; \
   	mkdir -pv _pages/staging/spec ; \
   	mkdir -pv _pages/staging/rpc ; \
@@ -85,7 +88,7 @@ versions-data:
 	fi
 	@if [ "${STAGING_DOCS}" ]; then \
 		echo "Adding \"staging\" version"; \
-		echo "- branch: staging-docs" >> _data/versions.yml; \
+		echo "- branch: ${STAGING_BRANCH}" >> _data/versions.yml; \
 		echo "  output_path: staging" >> _data/versions.yml; \
 		echo "  visible: true" >> _data/versions.yml; \
 		echo "output_path: staging" > _data/default_version.yml ; \
